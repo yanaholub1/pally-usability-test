@@ -3,7 +3,7 @@ import { Icon } from '../components/Icon'
 import { ClubCard, EventCard } from '../components/cards'
 import { asset } from '../components/assets'
 import {
-  Badge, BottomBar, Button, Chip, IconButton, InfoRow, NavBar, RadioCard, SectionHeader, Segmented, Sheet, StepHeader, TButton, TitleHeader, BallHero,
+  Badge, BottomBar, Button, Chip, IconButton, InfoRow, NavBar, RadioCard, SectionHeader, Segmented, Sheet, StepHeader, TButton, TitleHeader, BallHero, StatsCard, SummaryCard,
 } from '../components/ui'
 import { BOOKING_FEE, HOST, clubs, courts, startTimes } from '../data'
 import { dayAt, endTime, fmt, genderLabel, levelRange, useApp } from '../state'
@@ -333,24 +333,14 @@ export function ReviewScreen() {
       <div className="screen__scroll">
         <BallHero onBack={back} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 24px' }}>
-          <div className="card" style={{ overflow: 'hidden' }}>
-            <p className="caption muted" style={{ background: 'var(--gray-100)', textAlign: 'center', padding: '8px 0' }}>Match review</p>
-            <div className="stack" style={{ alignItems: 'center', padding: '16px 16px 20px', gap: 4 }}>
-              <p className="h3">Open match</p>
-              <p className="body14 muted">Visible on “Find”</p>
-            </div>
-          </div>
+          <SummaryCard status="joined" statusLabel="Match review" title="Open match" subtitle="Visible on “Find”" />
           <div className="info-card">
             <InfoRow icon="calendar" trackId="review:edit-time" onClick={() => push('club')}>{fmt.long(d)} • {config.time}–{endTime(config.time ?? '18:30', config.duration)}</InfoRow>
             <InfoRow icon="location-pin" trackId="review:edit-court" onClick={() => push('club')}>{club.name} • {court.name.replace('Court ', 'Court ')} • {court.short}</InfoRow>
             <InfoRow icon="racket" trackId="review:edit-type" onClick={() => push('matchType')}>{config.type === 'competitive' ? 'Competitive • Results affect your level' : 'Casual • Results don’t affect your level'}</InfoRow>
-            <InfoRow icon="person-check" trackId="review:edit-approval" onClick={() => push('approval')}>Your approval is required • You review each player</InfoRow>
+            <InfoRow icon="person-shield" trackId="review:edit-approval" onClick={() => push('approval')}>Your approval is required • You review each player</InfoRow>
           </div>
-          <div className="stats-card">
-            <div className="stats-card__col"><span className="stats-card__label">Gender</span><span className="stats-card__value">{genderLabel[config.gender ?? 'any']}</span></div>
-            <div className="stats-card__col"><span className="stats-card__label">Level</span><span className="stats-card__value">{lo.toFixed(1)} – {hi.toFixed(1)}</span></div>
-            <div className="stats-card__col"><span className="stats-card__label">Court</span><span className="stats-card__value">€{court.price}</span></div>
-          </div>
+          <StatsCard items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Court', `€${court.price}`]]} />
           <MoreInfo dayIndex={config.dayIndex} time={config.time ?? '18:30'} />
         </div>
       </div>

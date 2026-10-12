@@ -10,7 +10,7 @@ export const motion = {
   // Bottom sheets (e.g. "Find or start an activity", "Before you continue")
   sheetDuration: 320,
   sheetEasing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-  scrimOpacity: 0.4,
+  scrimOpacity: 0.3, // kit: component/overlay/background (black 30%)
 
   // Player profile opening over the requests list
   profileDuration: 340,

@@ -27,7 +27,7 @@ export function EventCard({
         ))}
       </div>
       <TButton trackId={`${trackId}:open`} onClick={onOpen} style={{ display: 'block', width: '100%' }}>
-        <p className="h5" style={{ marginBottom: 16 }}>{title}</p>
+        <p className="h5 ellipsis" style={{ marginBottom: 16 }}>{title}</p>
         {compact ? (
           <div className="row gap8">
             {lineup.map((s, i) => (
@@ -36,8 +36,15 @@ export function EventCard({
           </div>
         ) : (
           <div className="lineup-full">
-            {lineup.map((s, i) => (
-              <Avatar key={i} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
+            {[lineup.slice(0, 2), lineup.slice(2, 4)].map((team, ti) => (
+              <div key={ti} style={{ display: 'contents' }}>
+                {ti === 1 && <div className="lineup-full__divider" />}
+                <div className="lineup-full__team">
+                  {team.map((s, i) => (
+                    <Avatar key={i} size={64} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -119,6 +126,27 @@ export function EmptyState({ illustration, fallbackIcon, title, desc, action, ac
           <p className="body16 muted">{desc}</p>
         </div>
         <div><Button variant="secondary" icon={actionIcon} trackId={trackId}>{action}</Button></div>
+      </div>
+    </div>
+  )
+}
+
+/** Players section on event details: Lineup (Match, Full) inside a card */
+export function PlayersCard({ slots }: { slots: LineupSlot[] }) {
+  const all = [0, 1, 2, 3].map((i) => slots[i] ?? { available: true })
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div className="lineup-full">
+        {[all.slice(0, 2), all.slice(2, 4)].map((team, ti) => (
+          <div key={ti} style={{ display: 'contents' }}>
+            {ti === 1 && <div className="lineup-full__divider" />}
+            <div className="lineup-full__team">
+              {team.map((s, i) => (
+                <Avatar key={i} size={64} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

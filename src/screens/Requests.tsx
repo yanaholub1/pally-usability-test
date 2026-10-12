@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '../components/Icon'
-import { EventCard } from '../components/cards'
-import { Avatar, Badge, BallHero, Button, InfoRow, SectionHeader, TButton, useTimeout } from '../components/ui'
+import { EventCard, PlayersCard } from '../components/cards'
+import { Avatar, Badge, BallHero, Button, CardWithTray, InfoRow, SectionHeader, StatsCard, SummaryCard, TButton, Toast, useTimeout } from '../components/ui'
 import { HomeScaffold } from './Home'
 import { MoreInfo } from './CreateMatch'
 import { HOST, attendanceBucket, clubs, courts, requestersFor, sportsBucket, type Requester } from '../data'
@@ -62,7 +62,7 @@ export function HomeMatchScreen() {
           tone: 'blue',
           content: requestsArrived && pending.length ? (
             <>
-              <Badge variant="attention">{pending.length} {pending.length === 1 ? 'request' : 'requests'}</Badge>
+              <Badge variant="attention" dot>{pending.length} {pending.length === 1 ? 'request' : 'requests'}</Badge>
               <span className="status-text"><Icon name="hour-glass" size={14} /> Expires in {minExpiry(pending)}h</span>
             </>
           ) : (
@@ -75,7 +75,7 @@ export function HomeMatchScreen() {
         location={club.name}
         action={
           requestsArrived && pending.length ? (
-            <Button icon="users" trackId="home:see-requests" onClick={() => push('requests')}>See requests</Button>
+            <Button icon="incoming" trackId="home:see-requests" onClick={() => push('requests')}>See requests</Button>
           ) : (
             <Button variant="secondary" icon="chat" trackId="home:message">Message</Button>
           )
@@ -122,52 +122,35 @@ export function MatchDetailsScreen() {
     { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true },
     ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), you: false })),
   ]
+  const summaryActions = [
+    { icon: 'chat', label: 'Message', trackId: 'details:message' },
+    { icon: 'person-plus', label: 'Invite players', trackId: 'details:invite' },
+    { icon: 'map', label: 'Find on map', trackId: 'details:map' },
+  ]
   return (
     <div className="screen">
       <div className="screen__scroll">
         <BallHero onBack={back} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 40px' }}>
-          <div style={{ background: 'var(--gray-100)', borderRadius: 24 }}>
-            <div className="card" style={{ overflow: 'hidden' }}>
-              {requestsArrived && pending.length > 0 && <p className="caption" style={{ background: 'var(--coral-50)', color: 'var(--coral-700)', textAlign: 'center', padding: '8px 0' }}>{pending.length} players requested to join</p>}
-              <div className="stack" style={{ alignItems: 'center', padding: '16px 16px 20px', gap: 4 }}>
-                <p className="h3">Open match</p>
-                <p className="body14 muted">Visible on “Find”</p>
-                <div className="row" style={{ marginTop: 16, gap: 32 }}>
-                  {[['chat', 'Message'], ['person-plus', 'Invite players'], ['map', 'Find on map']].map(([ic, label]) => (
-                    <TButton key={label} trackId={`details:${label}`} className="stack gap8" style={{ alignItems: 'center' }}>
-                      <span className="btn btn--neutral icon-btn"><Icon name={ic} size={20} /></span>
-                      <span className="label14">{label}</span>
-                    </TButton>
-                  ))}
-                </div>
-              </div>
+          {requestsArrived && pending.length > 0 ? (
+            <CardWithTray action="See requests" trackId="details:see-requests" onAction={() => push('requests')}>
+              <SummaryCard status="action" statusLabel={`${pending.length} players requested to join`} title="Open match" subtitle="Visible on “Find”" actions={summaryActions} />
+            </CardWithTray>
+          ) : (
+            <SummaryCard status="joined" statusLabel="You’re in this match" title="Open match" subtitle="Visible on “Find”" actions={summaryActions} />
+          )}
+          <CardWithTray action="Add to calendar" trackId="details:add-to-calendar">
+            <div className="info-card">
+              <InfoRow icon="calendar"><b>{fmt.long(d)}</b> • {config.time}–{endTime(config.time ?? '18:30', config.duration)}</InfoRow>
+              <InfoRow icon="location-pin"><b>{club.name}</b> • {court.name} • {court.short}</InfoRow>
+              <InfoRow icon="racket"><b>{config.type === 'competitive' ? 'Competitive' : 'Casual'}</b> • {config.type === 'competitive' ? 'Results affect your level' : 'Results don’t affect your level'}</InfoRow>
+              <InfoRow icon="person-shield"><b>Your approval is required</b> • You are the match host</InfoRow>
             </div>
-            {requestsArrived && pending.length > 0 && (
-              <TButton className="link" trackId="details:see-requests" onClick={() => push('requests')} style={{ width: '100%', justifyContent: 'center', padding: '12px 0', fontSize: 14 }}>See requests</TButton>
-            )}
-          </div>
-          <div className="info-card">
-            <InfoRow icon="calendar"><b>{fmt.long(d)}</b> • {config.time}–{endTime(config.time ?? '18:30', config.duration)}</InfoRow>
-            <InfoRow icon="location-pin"><b>{club.name}</b> • {court.name} • {court.short}</InfoRow>
-            <InfoRow icon="racket"><b>{config.type === 'competitive' ? 'Competitive' : 'Casual'}</b> • {config.type === 'competitive' ? 'Results affect your level' : 'Results don’t affect your level'}</InfoRow>
-            <InfoRow icon="person-check"><b>Your approval is required</b> • You are the match host</InfoRow>
-          </div>
-          <div className="stats-card">
-            <div className="stats-card__col"><span className="stats-card__label">Gender</span><span className="stats-card__value">{genderLabel[config.gender ?? 'any']}</span></div>
-            <div className="stats-card__col"><span className="stats-card__label">Level</span><span className="stats-card__value">{lo.toFixed(1)} – {hi.toFixed(1)}</span></div>
-            <div className="stats-card__col"><span className="stats-card__label">Price</span><span className="stats-card__value">€{(court.price / 4).toFixed(2)}</span></div>
-          </div>
+          </CardWithTray>
+          <StatsCard items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Price', `€${(court.price / 4).toFixed(2)}`]]} />
           <div className="stack gap12">
             <SectionHeader title="Players" />
-            <div className="card" style={{ padding: 16 }}>
-              <div className="lineup-full">
-                {[0, 1, 2, 3].map((i) => {
-                  const s = slots[i]
-                  return s ? <Avatar key={i} name={s.name} photo={s.photo} level={s.level} showName nameNode={s.you ? 'You' : s.name} /> : <Avatar key={i} available showName nameNode="Available" />
-                })}
-              </div>
-            </div>
+            <PlayersCard slots={slots} />
           </div>
           <MoreInfo dayIndex={config.dayIndex} time={config.time ?? '18:30'} />
         </div>
@@ -216,14 +199,16 @@ export function RequestsScreen() {
   const admittedCount = Object.values(decisions).filter((d) => d === 'admitted').length
   const spotsLeft = SPOTS - admittedCount
   const pending = requesters.filter((r) => !decisions[r.id])
-  const [snack, setSnack] = useState<{ id: string; text: string; key: number } | null>(null)
+  const [snack, setSnack] = useState<{ id: string; text: string; tone: 'success' | 'neutral'; key: number } | null>(null)
   const [snackLeaving, setSnackLeaving] = useState(false)
 
   useEffect(() => {
     if (!snack) return
     setSnackLeaving(false)
-    const t1 = setTimeout(() => setSnackLeaving(true), motion.snackbarVisibleFor)
-    const t2 = setTimeout(() => setSnack(null), motion.snackbarVisibleFor + motion.snackbarDuration)
+    // kit: toasts with an action stay at least 6 s
+    const visible = Math.max(6000, motion.snackbarVisibleFor)
+    const t1 = setTimeout(() => setSnackLeaving(true), visible)
+    const t2 = setTimeout(() => setSnack(null), visible + motion.snackbarDuration)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [snack])
 
@@ -237,17 +222,11 @@ export function RequestsScreen() {
       <div className="screen__scroll">
         <BallHero onBack={back} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 120px' }}>
-          <div className="card stack gap16" style={{ padding: 16 }}>
-            <p className="h3" style={{ textAlign: 'center' }}>Requests to join match</p>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <div className="stats-card__col"><span className="stats-card__label">Gender</span><span className="stats-card__value">{genderLabel[config.gender ?? 'any']}</span></div>
-              <div className="stats-card__col" style={{ alignItems: 'center' }}><span className="stats-card__label">Level</span><span className="stats-card__value">{lo.toFixed(1)} – {hi.toFixed(1)}</span></div>
-              <div className="stats-card__col" style={{ alignItems: 'flex-end' }}><span className="stats-card__label">Price</span><span className="stats-card__value">€{(court.price / 4).toFixed(2)}</span></div>
-            </div>
-            <p className="caption" style={{ textAlign: 'center', color: spotsLeft ? 'var(--brand-900)' : 'var(--coral-700)' }}>
+          <StatsCard title="Requests to join match" items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Price', `€${(court.price / 4).toFixed(2)}`]]}>
+            <p className="caption" style={{ textAlign: 'center', marginTop: -4, color: spotsLeft ? 'var(--brand-900)' : 'var(--coral-700)' }}>
               {spotsLeft ? `${spotsLeft} of ${SPOTS} spots left` : 'Match full'}
             </p>
-          </div>
+          </StatsCard>
           {requesters.map((r) => (
             <div key={r.id} className={`collapse ${decisions[r.id] ? 'gone' : ''}`}>
               <div aria-hidden={!!decisions[r.id]}>
@@ -260,7 +239,7 @@ export function RequestsScreen() {
                     onProfile={() => openProfile(r.id)}
                     onDecide={(d) => {
                       decide(r.id, d)
-                      setSnack({ id: r.id, text: `${r.name} ${d}`, key: Date.now() })
+                      setSnack({ id: r.id, text: d === 'admitted' ? `${r.name} admitted` : 'Request declined', tone: d === 'admitted' ? 'success' : 'neutral', key: Date.now() })
                     }}
                   />
                 )}
@@ -277,10 +256,16 @@ export function RequestsScreen() {
         </div>
       </div>
       {snack && (
-        <div className={`snackbar ${snackLeaving ? 'leaving' : ''}`} key={snack.key} role="status">
-          <span className="grow body14">{snack.text}</span>
-          <TButton trackId={`request:${snack.id}:undo`} onClick={() => { decide(snack.id, null); setSnack(null) }}>Undo</TButton>
-        </div>
+        <Toast
+          key={snack.key}
+          tone={snack.tone}
+          message={snack.text}
+          action="Undo"
+          onAction={() => { decide(snack.id, null); setSnack(null) }}
+          onClose={() => setSnack(null)}
+          leaving={snackLeaving}
+          trackPrefix={`toast:${snack.id}`}
+        />
       )}
     </div>
   )

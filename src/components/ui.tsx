@@ -24,7 +24,7 @@ export function TButton({ trackId, trackData, onClick, children, disabled, ...re
 }
 
 type BtnProps = {
-  variant?: 'primary' | 'secondary' | 'neutral' | 'danger2' | 'black' | 'on-brand'
+  variant?: 'primary' | 'secondary' | 'neutral' | 'ghost' | 'danger2' | 'black' | 'on-brand'
   size?: 'sm' | 'lg'
   icon?: string
   fill?: boolean
@@ -147,9 +147,10 @@ export function SectionHeader({ title, info, link, onLink }: { title: string; in
   )
 }
 
-export function Badge({ icon, children, variant }: { icon?: string; children: ReactNode; variant?: 'media' | 'accent' | 'attention' }) {
+export function Badge({ icon, dot, children, variant }: { icon?: string; dot?: boolean; children: ReactNode; variant?: 'media' | 'accent' | 'attention' }) {
   return (
-    <span className={`badge ${icon ? 'badge--lead' : ''} ${variant ? `badge--${variant}` : ''}`}>
+    <span className={`badge ${(icon || dot) && variant !== 'attention' ? 'badge--lead' : ''} ${variant ? `badge--${variant}` : ''}`}>
+      {dot && <span className="badge__dot" />}
       {icon && <Icon name={icon} size={14} />}
       {children}
     </span>
@@ -241,10 +242,11 @@ export function Avatar({ name, photo, level, size = 56, available, showName, nam
   ) : (
     <div className="avatar__tile avatar__tile--initials" style={{ background: tintFor(name ?? '?'), fontSize: size * 0.36 }}>{(name ?? '?').slice(0, 1)}</div>
   )
+  const sizeCls = size >= 64 ? 'avatar--l' : size <= 44 ? 'avatar--s' : 'avatar--m'
   const av = (
-    <div className="avatar" style={{ width: size, height: size }}>
+    <div className={`avatar ${sizeCls}`} style={{ width: size, height: size }}>
       {tile}
-      {level && <span className="avatar__level">{level}</span>}
+      {level && <LevelBadge level={level} />}
     </div>
   )
   if (!showName) return av
@@ -252,6 +254,86 @@ export function Avatar({ name, photo, level, size = 56, available, showName, nam
     <div className="avatar-with-name">
       {av}
       <span className="label16 ellipsis" style={{ fontWeight: 500 }}>{nameNode ?? name}</span>
+    </div>
+  )
+}
+
+/** Level badge (kit: Level badge, Type=Player) — lime ball with seams */
+export function LevelBadge({ level }: { level: string }) {
+  return (
+    <span className="avatar__level">
+      <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden>
+        <circle cx="12" cy="12" r="11.25" fill="#c2fe06" stroke="#fff" strokeWidth="1.5" />
+        <path d="M3.2 5.6C7.6 7.4 9.2 12.8 6.8 20.6M20.8 18.4C16.4 16.6 14.8 11.2 17.2 3.4" fill="none" stroke="#dbf766" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+      <span>{level}</span>
+    </span>
+  )
+}
+
+/** Toast (kit: Toast) — top of the screen, Success / Neutral, optional action + close */
+export function Toast({ tone, message, action, onAction, onClose, leaving, trackPrefix }: { tone: 'success' | 'neutral'; message: string; action?: string; onAction?: () => void; onClose: () => void; leaving?: boolean; trackPrefix: string }) {
+  return (
+    <div className={`toast toast--${tone} ${leaving ? 'leaving' : ''}`} role="status" aria-live="polite">
+      <span className="toast__msg">
+        <Icon name={tone === 'success' ? 'checkmark' : 'info'} size={20} />
+        <span className="ellipsis">{message}</span>
+      </span>
+      {action && <TButton className="toast__action" trackId={`${trackPrefix}:action`} onClick={onAction}>{action}</TButton>}
+      <TButton className="btn btn--neutral icon-btn icon-btn--xs" aria-label="Close" trackId={`${trackPrefix}:close`} onClick={onClose} style={{ width: 32, height: 32 }}>
+        <Icon name="close" size={16} />
+      </TButton>
+    </div>
+  )
+}
+
+/** EventDetails/StatsCard — 2–3 facts, optional H2 title */
+export function StatsCard({ title, items, children }: { title?: string; items: [string, string][]; children?: ReactNode }) {
+  return (
+    <div className="stats-card">
+      {title && <p className="h2" style={{ textAlign: 'center' }}>{title}</p>}
+      <div className="stats-card__items">
+        {items.map(([label, value]) => (
+          <div key={label} className="stats-card__col">
+            <span className="stats-card__label">{label}</span>
+            <span className="stats-card__value">{value}</span>
+          </div>
+        ))}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+/** EventDetails/SummaryCard — status strip, H2 title, subtitle, ActionButtons */
+export function SummaryCard({ status, statusLabel, title, subtitle, actions }: { status?: 'action' | 'joined' | 'info'; statusLabel?: string; title: string; subtitle?: string; actions?: { icon: string; label: string; trackId: string; onClick?: () => void }[] }) {
+  return (
+    <div className="summary-card" style={status ? undefined : { paddingTop: 16 }}>
+      {status && <p className={`summary-card__strip summary-card__strip--${status}`}>{statusLabel}</p>}
+      <div className="summary-card__title">
+        <p className="h2">{title}</p>
+        {subtitle && <p className="body16 muted">{subtitle}</p>}
+      </div>
+      {actions && (
+        <div className="summary-card__actions">
+          {actions.map((a) => (
+            <TButton key={a.label} className="action-btn" trackId={a.trackId} onClick={a.onClick}>
+              <span className="action-btn__circle"><Icon name={a.icon} /></span>
+              <span className="ellipsis" style={{ maxWidth: '100%' }}>{a.label}</span>
+            </TButton>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** EventDetails/CardWithTray — a card with a grey tray (one Ghost action) tucked underneath */
+export function CardWithTray({ children, action, trackId, onAction }: { children: ReactNode; action: string; trackId: string; onAction?: () => void }) {
+  return (
+    <div className="with-tray">
+      <div>{children}</div>
+      <div className="card-tray"><Button variant="ghost" trackId={trackId} onClick={onAction}>{action}</Button></div>
     </div>
   )
 }
