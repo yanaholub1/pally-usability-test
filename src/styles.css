@@ -76,13 +76,13 @@ p { margin: 0; }
 .statusbar {
   position: absolute; top: 0; left: 0; right: 0; height: 50px; z-index: 50; pointer-events: none;
   font: 600 15px/1 Inter, system-ui, sans-serif; color: var(--gray-900);
-  display: flex; align-items: center; justify-content: space-between; padding: 0 28px 0 32px;
+  display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 24px 0 24px;
 }
 .statusbar--light { color: #fff; }
-.statusbar__right { display: flex; align-items: center; gap: 6px; }
+.statusbar__right { position: absolute; left: 300px; top: 16px; display: flex; align-items: center; gap: 8px; }
 .statusbar__bars { display: flex; align-items: flex-end; gap: 2px; height: 10px; }
 .statusbar__bars i { display: block; width: 3px; background: currentColor; border-radius: .5px; }
-.statusbar__battery { width: 24px; height: 11px; border: 1px solid currentColor; border-radius: 3px; padding: 1.5px; position: relative; }
+.statusbar__battery { width: 22px; height: 11px; border: 1px solid currentColor; border-radius: 3px; padding: 1.5px; position: relative; }
 .statusbar__battery::before { content: ''; display: block; height: 100%; width: 85%; background: currentColor; border-radius: 1px; }
 .statusbar__battery::after { content: ''; position: absolute; right: -3px; top: 3px; width: 1.5px; height: 4px; background: currentColor; border-radius: .5px; }
 .home-indicator { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 100px; background: var(--gray-800); z-index: 60; pointer-events: none; }
@@ -223,9 +223,9 @@ p { margin: 0; }
 
 .card { border: 1px solid var(--gray-300); border-radius: 24px; background: #fff; }
 .info-card { border: 1px solid var(--gray-300); border-radius: 24px; background: #fff; padding: 16px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
-.info-card:has(.info-row--tap) { padding: 0; gap: 0; }
+.info-card:has(.info-row--tap) { padding: 8px 0; gap: 0; }
 .info-row { display: flex; gap: 8px; align-items: flex-start; font-size: 16px; line-height: 24px; width: 100%; }
-.info-row--tap { align-items: center; padding: 12px 12px 12px 16px; transition: background-color var(--motion-press); }
+.info-row--tap { align-items: center; min-height: 56px; padding: 4px 12px 4px 16px; transition: background-color var(--motion-press); }
 .info-row--tap:active { background: var(--gray-100); }
 .info-row__text { flex: 1; min-width: 0; }
 .info-row b { font-weight: 600; }
@@ -235,8 +235,8 @@ p { margin: 0; }
 .segmented button { flex: 1; min-width: 0; padding: 8px; border-radius: 12px; text-align: center; font-weight: 500; font-size: 14px; line-height: 20px; text-transform: uppercase; color: var(--gray-700); transition: background-color .2s; }
 .segmented button.on { background: #fff; font-weight: 600; color: var(--gray-900); }
 
-.bottom-bar { flex-shrink: 0; background: #fff; padding: 16px 20px calc(var(--safe-bottom) + 0px); position: relative; z-index: 3; }
-.device:not(.device--framed) .bottom-bar { padding-bottom: var(--safe-bottom); }
+.bottom-bar { flex-shrink: 0; background: #fff; padding: 16px 20px 24px; position: relative; z-index: 3; }
+@media (max-width: 520px) { .bottom-bar { padding-bottom: max(24px, var(--safe-bottom)); } }
 
 /* ───────────────────────── Avatar ───────────────────────── */
 .avatar { position: relative; flex-shrink: 0; }

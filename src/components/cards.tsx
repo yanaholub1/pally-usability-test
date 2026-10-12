@@ -151,3 +151,21 @@ export function PlayersCard({ slots }: { slots: LineupSlot[] }) {
     </div>
   )
 }
+
+/** PromoBanner, Layout=Link — whole banner is one tap target (payment page) */
+export function PromoLink() {
+  const art = asset('illustrations', 'promo-coins')
+  return (
+    <TButton trackId="promo:pally-plus" style={{ display: 'block', width: '100%', background: 'var(--lime-soft)', border: '1px solid var(--lime-border)', borderRadius: 28, padding: 4 }}>
+      <p className="caption" style={{ textAlign: 'center', height: 24, paddingTop: 4 }}>30-day free trial</p>
+      <span style={{ background: '#fff', borderRadius: 24, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+        {art ? <img src={art} width={54} height={56} alt="" style={{ objectFit: 'contain' }} /> : <span style={{ width: 54, height: 56, borderRadius: 16, background: 'var(--lime-soft)', flexShrink: 0 }} />}
+        <span className="grow stack gap4" style={{ textAlign: 'left' }}>
+          <span className="h6">Subscribe to Pally+</span>
+          <span className="body16 muted">Forget about booking fees, get feedback on your game and more!</span>
+        </span>
+        <Icon name="chevron-right" size={20} />
+      </span>
+    </TButton>
+  )
+}

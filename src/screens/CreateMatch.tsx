@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Icon } from '../components/Icon'
-import { ClubCard, EventCard } from '../components/cards'
+import { ClubCard, EventCard, PromoLink } from '../components/cards'
 import { asset } from '../components/assets'
 import {
   Badge, BottomBar, Button, Chip, IconButton, InfoRow, NavBar, RadioCard, SectionHeader, Segmented, Sheet, StepHeader, TButton, TitleHeader, BallHero, StatsCard, SummaryCard,
@@ -383,18 +383,19 @@ export function PaymentScreen() {
           <InfoRow icon="location-pin">{club.name} • {club.address.split(', ')[1]}</InfoRow>
         </div>
         <div className="stack gap12">
-          <p className="h5">How would you like to pay?</p>
+          <SectionHeader title="How would you like to pay?" />
           <RadioCard icon="profile" title={`Pay my share • ${eur(share + BOOKING_FEE)}`} desc="Other players will pay their share when they join" selected={config.payMode === 'share'} onSelect={() => setConfig({ payMode: 'share' })} trackId="pay:share" />
           <RadioCard icon="users" title={`Pay the full court price • ${eur(court.price + BOOKING_FEE)}`} desc="Other players can reimburse you separately" selected={config.payMode === 'full'} onSelect={() => setConfig({ payMode: 'full' })} trackId="pay:full" />
         </div>
-        <div className="stack gap12">
-          <p className="h5">Payment method</p>
-          <TButton className="chip" style={{ justifyContent: 'flex-start', width: '100%', borderRadius: 16 }} trackId="pay:method">
+        <div className="stack gap8">
+          <SectionHeader title="Payment method" />
+          <TButton className="chip" style={{ justifyContent: 'flex-start', width: '100%', borderRadius: 16, padding: 16, height: 54 }} trackId="pay:method">
             <Icon name="wallet" size={20} /><span className="grow" style={{ fontWeight: 600 }}>Apple Pay</span><Icon name="chevron-down" size={20} />
           </TButton>
         </div>
+        <PromoLink />
         <div className="stack gap12">
-          <p className="h5">Summary</p>
+          <SectionHeader title="Summary" />
           <div className="card stack gap12" style={{ padding: 16, borderRadius: 16 }}>
             <div className="row" style={{ justifyContent: 'space-between' }}><span className="body16 muted">Court price</span><span className="label16">{eur(court.price)}</span></div>
             <div className="row" style={{ justifyContent: 'space-between' }}><span className="body16 muted">You pay • {config.payMode === 'share' ? 'Your share' : 'Full court'}</span><span className="label16">{eur(youPay)}</span></div>
