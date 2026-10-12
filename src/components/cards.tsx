@@ -1,0 +1,125 @@
+import type { ReactNode } from 'react'
+import { Icon } from './Icon'
+import { asset } from './assets'
+import { Avatar, Badge, Button, IconButton, TButton } from './ui'
+
+export type LineupSlot = { name?: string; photo?: string; level?: string; available?: boolean; you?: boolean }
+
+/** Event card. `header` mirrors the Figma EventCard Header property. */
+export function EventCard({
+  header, tags, title, lineup, location, action, compact, trackId, onOpen,
+}: {
+  header?: { tone: 'blue' | 'grey' | 'lime'; content: ReactNode }
+  tags: { icon?: string; label: string; accent?: boolean }[]
+  title: string
+  lineup: LineupSlot[]
+  location: string
+  action: ReactNode
+  compact?: boolean
+  trackId: string
+  onOpen?: () => void
+}) {
+  const card = (
+    <div className={`event-card ${header ? '' : 'event-card--bordered'}`}>
+      <div className="event-card__tags">
+        {tags.map((t) => (
+          <Badge key={t.label} icon={t.icon} variant={t.accent ? 'accent' : undefined}>{t.label}</Badge>
+        ))}
+      </div>
+      <TButton trackId={`${trackId}:open`} onClick={onOpen} style={{ display: 'block', width: '100%' }}>
+        <p className="h5" style={{ marginBottom: 16 }}>{title}</p>
+        {compact ? (
+          <div className="row gap8">
+            {lineup.map((s, i) => (
+              <Avatar key={i} name={s.name} photo={s.photo} level={s.level} available={s.available} />
+            ))}
+          </div>
+        ) : (
+          <div className="lineup-full">
+            {lineup.map((s, i) => (
+              <Avatar key={i} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
+            ))}
+          </div>
+        )}
+      </TButton>
+      <div className="event-card__footer">
+        <span className="row gap4 grow">
+          <Icon name="location-pin" size={18} />
+          <span className="label16 ellipsis">{location}</span>
+        </span>
+        <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
+        {action}
+      </div>
+    </div>
+  )
+  if (!header) return card
+  return (
+    <div className={`event-frame ${header.tone === 'blue' ? 'event-frame--blue' : header.tone === 'lime' ? '' : 'event-frame--grey'}`} style={header.tone === 'lime' ? { background: 'var(--lime-soft)' } : undefined}>
+      <div className="event-frame__strip">{header.content}</div>
+      {card}
+    </div>
+  )
+}
+
+export function ClubCard({ name, address, photo, onBook, trackId }: { name: string; address: string; photo: string; onBook: () => void; trackId: string }) {
+  const src = asset('clubs', photo)
+  return (
+    <div className="club-card" style={src ? { backgroundImage: `url(${src})` } : { backgroundImage: 'linear-gradient(160deg,#5b7fb8 0%,#1f4fa3 45%,#123a7a 100%)' }}>
+      <div className="club-card__scrim" />
+      <div className="row gap12" style={{ position: 'relative' }}>
+        <div className="row gap8 grow">
+          <Badge icon="calendar" variant="media">10+ slots</Badge>
+          <Badge variant="media">From €17/hour</Badge>
+        </div>
+        <IconButton icon="heart" label="Save club" trackId={`${trackId}:save`} />
+      </div>
+      <div className="row gap12" style={{ position: 'relative', color: '#fff' }}>
+        <div className="grow stack gap8">
+          <p className="h5 ellipsis">{name}</p>
+          <span className="row gap4"><Icon name="location-pin" size={18} /><span className="label14 ellipsis">{address}</span></span>
+        </div>
+        <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
+        <Button variant="secondary" icon="field" trackId={`${trackId}:book`} onClick={onBook}>Book</Button>
+      </div>
+    </div>
+  )
+}
+
+export function PromoBanner() {
+  const art = asset('illustrations', 'promo-court')
+  return (
+    <div style={{ background: 'var(--lime-soft)', border: '1px solid var(--lime-border)', borderRadius: 28, padding: 4 }}>
+      <p className="caption" style={{ textAlign: 'center', height: 24, paddingTop: 4 }}>30-day free trial of Pally+</p>
+      <div style={{ background: '#fff', borderRadius: 24, padding: 12, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {art && <img src={art} alt="" style={{ position: 'absolute', right: 0, bottom: 0, width: 352, height: 118 }} />}
+        <div style={{ position: 'relative' }}>
+          <p className="caption muted">Get match suggestions</p>
+          <p className="h5">Spend time playing, not planning</p>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <Button trackId="promo:add-preferences">Add preferences</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function EmptyState({ illustration, fallbackIcon, title, desc, action, actionIcon, trackId }: { illustration: string; fallbackIcon: string; title: string; desc: string; action: string; actionIcon: string; trackId: string }) {
+  const art = asset('illustrations', illustration)
+  return (
+    <div className="card stack gap16" style={{ padding: 12 }}>
+      {art ? <img src={art} width={72} height={72} alt="" /> : (
+        <span style={{ width: 72, height: 72, display: 'grid', placeItems: 'center', color: 'var(--brand-300)', background: 'var(--brand-50)', borderRadius: 20 }}>
+          <Icon name={fallbackIcon} size={40} strokeWidth={1.2} />
+        </span>
+      )}
+      <div className="stack gap8">
+        <div className="stack gap4">
+          <p className="h5">{title}</p>
+          <p className="body16 muted">{desc}</p>
+        </div>
+        <div><Button variant="secondary" icon={actionIcon} trackId={trackId}>{action}</Button></div>
+      </div>
+    </div>
+  )
+}
