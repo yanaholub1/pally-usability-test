@@ -262,9 +262,15 @@ export function Avatar({ name, photo, level, size = 56, available, showName, nam
 export function LevelBadge({ level }: { level: string }) {
   return (
     <span className="avatar__level">
+      {/* Ball artwork from the kit export (Level badge, Type=Player); the level is live text on top */}
       <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden>
-        <circle cx="12" cy="12" r="11.25" fill="#c2fe06" stroke="#fff" strokeWidth="1.5" />
-        <path d="M3.2 5.6C7.6 7.4 9.2 12.8 6.8 20.6M20.8 18.4C16.4 16.6 14.8 11.2 17.2 3.4" fill="none" stroke="#dbf766" strokeWidth="1.6" strokeLinecap="round" />
+        <defs>
+          <clipPath id="lvl-ball"><circle cx="12" cy="12" r="12" /></clipPath>
+        </defs>
+        <g clipPath="url(#lvl-ball)">
+          <circle cx="12" cy="12" r="12" fill="#DBF766" />
+          <path d="M8.64578 -14.1825C9.47711 -8.79969 10.1122 1.96036 6.99951 5.5C2.47774 10.6419 -6.00523 7.28959 -9.00049 4.5M8.64499 25.0009C13.8961 18.4995 15.9995 19.4996 23.0002 19.4996" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
+        </g>
       </svg>
       <span>{level}</span>
     </span>
