@@ -428,20 +428,23 @@ export function BookedScreen() {
   const club = clubs.find((c) => c.id === config.clubId)!
   const d = dayAt(config.dayIndex)
   const heart = asset('illustrations', 'booked-heart')
+  const bookedBg = asset('illustrations', 'booked-bg')
   const close = () => { milestone('task1_complete'); reset('homeMatch') }
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <div className="brand-bg" style={{ position: 'relative', color: '#fff', padding: 'calc(var(--safe-top) + 4px) 20px 72px', minHeight: 330, overflow: 'hidden' }}>
+        <div className="brand-bg" style={{ position: 'relative', color: '#fff', padding: 'calc(var(--safe-top) + 4px) 20px 72px', minHeight: 330, overflow: 'hidden', ...(bookedBg ? { backgroundImage: `url(${bookedBg})`, backgroundSize: '100% auto', backgroundPosition: 'top center' } : {}) }}>
           <IconButton icon="close" label="Close" onClick={close} trackId="booked:close" />
           <div className="stack" style={{ alignItems: 'center', gap: 8, marginTop: 24, textAlign: 'center' }}>
-            {heart ? <img src={heart} width={80} height={72} alt="" /> : <span style={{ fontSize: 0, color: 'var(--lime)' }}><Icon name="heart" size={72} strokeWidth={0} style={{ fill: 'var(--lime)' }} /></span>}
+            {heart ? <img src={heart} width={80} height={72} alt="" /> : <span style={{ fontSize: 0, color: 'var(--lime)' }}><Icon name="heart-filled" size={72} style={{ color: 'var(--lime)' }} /></span>}
             <p className="h2" style={{ marginTop: 8 }}>Court booked</p>
             <p className="body16">Your match is now visible to other players.</p>
           </div>
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 70, borderTop: '2px solid rgba(255,255,255,.9)' }}>
-            <div style={{ position: 'absolute', left: 82, top: 0, bottom: 0, borderLeft: '2px solid rgba(255,255,255,.9)' }} />
-          </div>
+          {!bookedBg && (
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 70, borderTop: '2px solid rgba(255,255,255,.9)' }}>
+              <div style={{ position: 'absolute', left: 82, top: 0, bottom: 0, borderLeft: '2px solid rgba(255,255,255,.9)' }} />
+            </div>
+          )}
         </div>
         <div className="sheet-body stack gap12" style={{ padding: '24px 20px 24px', marginTop: -24 }}>
           <div className="row" style={{ justifyContent: 'space-between' }}>

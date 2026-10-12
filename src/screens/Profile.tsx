@@ -9,7 +9,7 @@ function Stat({ art, fallback, value, label }: { art: string; fallback: string; 
   const src = asset('illustrations', art)
   return (
     <div className="profile-stat">
-      <span className="profile-stat__art">{src ? <img src={src} width={64} height={64} alt="" /> : <Icon name={fallback} size={44} strokeWidth={1.2} />}</span>
+      <span className="profile-stat__art">{src ? <img src={src} alt="" /> : <Icon name={fallback} size={44} strokeWidth={1.2} />}</span>
       <span className="h5">{value}</span>
       <span style={{ fontSize: 12, lineHeight: '16px' }}>{label}</span>
     </div>
@@ -17,6 +17,7 @@ function Stat({ art, fallback, value, label }: { art: string; fallback: string; 
 }
 
 function NotEnoughData({ title }: { title: string }) {
+  const art = asset('illustrations', 'smiley-empty')
   return (
     <div className="score-card score-card--empty">
       <div className="grow stack gap8">
@@ -24,6 +25,7 @@ function NotEnoughData({ title }: { title: string }) {
         <p className="body14 muted">{title} appears after 5 rated matches.</p>
         <div><Badge icon="profile">New to Pally</Badge></div>
       </div>
+      {art && <img src={art} width={72} height={72} alt="" style={{ opacity: 0.5, filter: 'grayscale(1)' }} />}
     </div>
   )
 }

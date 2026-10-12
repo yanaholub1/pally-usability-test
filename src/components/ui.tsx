@@ -228,10 +228,16 @@ function tintFor(name: string) {
 
 export function Avatar({ name, photo, level, size = 56, available, showName, nameNode }: { name?: string; photo?: string; level?: string; size?: number; available?: boolean; showName?: boolean; nameNode?: ReactNode }) {
   const src = photo ? asset('avatars', photo) : undefined
+  const mascotAvailable = asset('illustrations', 'mascot-available')
+  const mascotPlaceholder = asset('illustrations', 'mascot-placeholder')
   const tile = available ? (
-    <div className="avatar__tile avatar__tile--available"><span className="mascot" /></div>
+    <div className="avatar__tile avatar__tile--available">
+      {mascotAvailable ? <img src={mascotAvailable} alt="" className="avatar__mascot" /> : <span className="mascot" />}
+    </div>
   ) : src ? (
     <div className="avatar__tile"><img src={src} alt="" /></div>
+  ) : mascotPlaceholder ? (
+    <div className="avatar__tile"><img src={mascotPlaceholder} alt="" className="avatar__mascot" /></div>
   ) : (
     <div className="avatar__tile avatar__tile--initials" style={{ background: tintFor(name ?? '?'), fontSize: size * 0.36 }}>{(name ?? '?').slice(0, 1)}</div>
   )

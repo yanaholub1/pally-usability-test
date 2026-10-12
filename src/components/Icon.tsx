@@ -69,8 +69,8 @@ export function Icon({ name, size = 24, className, style, strokeWidth = 1.5 }: P
         style={{
           display: 'inline-block', width: size, height: size, flexShrink: 0,
           backgroundColor: 'currentColor',
-          WebkitMask: `url(${url}) center / contain no-repeat`,
-          mask: `url(${url}) center / contain no-repeat`,
+          WebkitMask: `url("${url}") center / contain no-repeat`,
+          mask: `url("${url}") center / contain no-repeat`,
           ...style,
         }}
       />
