@@ -109,6 +109,8 @@ export function HomeMatchScreen() {
 }
 
 /* ───────────── Match details (host view) ───────────── */
+let ballsHavePlayed = false // the ball drop plays once per session, the first time Match details opens
+
 export function MatchDetailsScreen() {
   const { config, push, back, requestsArrived, decisions } = useApp()
   const requesters = useRequesters()
@@ -122,6 +124,11 @@ export function MatchDetailsScreen() {
     { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true },
     ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), you: false })),
   ]
+  const [dropBalls] = useState(() => {
+    const play = !ballsHavePlayed
+    ballsHavePlayed = true
+    return play
+  })
   const summaryActions = [
     { icon: 'chat', label: 'Message', trackId: 'details:message' },
     { icon: 'person-plus', label: 'Invite players', trackId: 'details:invite' },
@@ -130,7 +137,7 @@ export function MatchDetailsScreen() {
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <BallHero onBack={back} />
+        <BallHero onBack={back} animateBalls={dropBalls} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 40px' }}>
           {requestsArrived && pending.length > 0 ? (
             <CardWithTray action="See requests" trackId="details:see-requests" onAction={() => push('requests')}>

@@ -30,6 +30,10 @@ export const motion = {
   snackbarDuration: 260,
   snackbarVisibleFor: 4000,
 
+  // Header balls dropping into the pile on Match details (Figma: 2 s timeline, played once per session here)
+  ballDropDuration: 2000,
+  ballDropDelay: 200, // wait for the screen to finish sliding in
+
   // Pressed state on buttons and cards
   pressDuration: 120,
 } as const

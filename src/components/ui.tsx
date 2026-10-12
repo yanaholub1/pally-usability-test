@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type ButtonHTMLAttributes } from 'react'
 import { Icon } from './Icon'
+import { BallPile } from './BallPile'
 import { asset } from './assets'
 import { track } from '../log'
 
@@ -98,39 +99,17 @@ export function TitleHeader({ title, onBack }: { title: string; onBack?: () => v
   )
 }
 
-/** Hero header with the lime ball pattern (match pages) */
-export function BallHero({ onBack, right }: { onBack: () => void; right?: ReactNode }) {
-  const art = asset('illustrations', 'header-balls')
+/** Hero header with the lime ball pattern (match pages). `animateBalls` drops the balls in (kit motion). */
+export function BallHero({ onBack, right, animateBalls = false }: { onBack: () => void; right?: ReactNode; animateBalls?: boolean }) {
   return (
     <div className="hero brand-bg">
-      {art ? (
-        <img src={art} alt="" className="hero__balls" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-      ) : (
-        <BallPattern />
-      )}
+      <BallPile animate={animateBalls} />
       <div className="hero__topbar">
         <IconButton icon="chevron-left" label="Back" onClick={onBack} trackId="back" />
         <div className="hdr__spacer" />
         {right ?? <IconButton icon="share" label="Share" trackId="share" />}
       </div>
     </div>
-  )
-}
-
-function BallPattern() {
-  const balls = [
-    [-6, 136, 52], [48, 112, 46], [92, 92, 50], [140, 134, 44], [186, 122, 48], [234, 102, 46], [282, 94, 50], [318, 128, 46], [362, 146, 44],
-  ]
-  return (
-    <svg className="hero__balls" viewBox="0 0 402 188" preserveAspectRatio="xMidYMax slice">
-      {balls.map(([x, y, r], i) => (
-        <g key={i} transform={`translate(${x} ${y}) rotate(${i * 37})`}>
-          <circle r={r / 2} fill="#c2fe06" stroke="#ffffff" strokeWidth="2.5" />
-          <path d={`M${-r / 2.3} ${-r / 6} C ${-r / 6} ${-r / 5}, ${-r / 8} ${r / 3}, ${-r / 4} ${r / 2.4}`} fill="none" stroke="#fff" strokeWidth="2" />
-          <path d={`M${r / 2.3} ${r / 6} C ${r / 6} ${r / 5}, ${r / 8} ${-r / 3}, ${r / 4} ${-r / 2.4}`} fill="none" stroke="#fff" strokeWidth="2" />
-        </g>
-      ))}
-    </svg>
   )
 }
 
