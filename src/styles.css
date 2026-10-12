@@ -241,8 +241,9 @@ p { margin: 0; }
 /* ───────────────────────── Avatar ───────────────────────── */
 .avatar { position: relative; flex-shrink: 0; }
 .avatar__tile { position: absolute; inset: 0; border-radius: 12px; border: 1px solid rgba(212,212,216,.7); overflow: hidden; background: var(--gray-100); display: grid; place-items: center; }
-.avatar__tile img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
-.avatar__tile img.avatar__mascot { width: 68%; height: 68%; object-fit: contain; }
+/* Photo is pinned to all four edges so it always fills the frame (Safari can mis-size images inside a centred grid) */
+.avatar__tile img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 50% 15%; }
+.avatar__tile img.avatar__mascot { position: static; width: 68%; height: 68%; object-fit: contain; }
 .avatar__tile--initials { color: #fff; font-weight: 600; font-size: 20px; }
 .avatar__tile--available { border: 1px dashed var(--gray-300); background: #fff; }
 .avatar__level { position: absolute; right: -6px; bottom: -8px; width: 24px; height: 24px; display: grid; place-items: center; font-weight: 500; font-size: 12px; line-height: 16px; color: var(--gray-900); white-space: nowrap; }
