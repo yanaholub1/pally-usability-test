@@ -436,7 +436,7 @@ export function BookedScreen() {
         <div className="brand-bg" style={{ position: 'relative', color: '#fff', padding: 'calc(var(--safe-top) + 4px) 20px 72px', minHeight: 330, overflow: 'hidden', ...(bookedBg ? { backgroundImage: `url(${bookedBg})`, backgroundSize: '100% auto', backgroundPosition: 'top center' } : {}) }}>
           <IconButton icon="close" label="Close" onClick={close} trackId="booked:close" />
           <div className="stack" style={{ alignItems: 'center', gap: 8, marginTop: 24, textAlign: 'center' }}>
-            {heart ? <img src={heart} width={80} height={72} alt="" /> : <span style={{ fontSize: 0, color: 'var(--lime)' }}><Icon name="heart-filled" size={72} style={{ color: 'var(--lime)' }} /></span>}
+            {heart ? <img src={heart} width={76} height={66} alt="" /> : <span style={{ fontSize: 0, color: 'var(--lime)' }}><Icon name="heart-filled" size={72} style={{ color: 'var(--lime)' }} /></span>}
             <p className="h2" style={{ marginTop: 8 }}>Court booked</p>
             <p className="body16">Your match is now visible to other players.</p>
           </div>
