@@ -156,7 +156,8 @@ p { margin: 0; }
 .steps i.done { background: var(--brand-500); }
 .steps i.current::before { content: ''; position: absolute; inset: 0 50% 0 0; background: var(--brand-500); transition: inset .3s; }
 
-.brand-bg { background-color: var(--brand-500); background-image: radial-gradient(rgba(11, 58, 158, .55) .5px, transparent .6px); background-size: 3px 3px; }
+/* Blue headers: kit "Header" noise texture (1206×564 @3x = 402×188), tiled for taller headers */
+.brand-bg { background-color: var(--brand-500); background-image: url('./assets/illustrations/header-noise.png'); background-size: 402px 188px; background-repeat: repeat; background-position: top left; }
 
 .hdr-greeting { position: relative; color: #fff; padding: calc(var(--safe-top) + 8px) 0 48px; margin-bottom: -24px; overflow: hidden; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
 .hdr-greeting__courtlines { position: absolute; left: -41px; top: -137px; width: 501px; height: 184px; border: 2px solid rgba(255,255,255,.18); border-top: 0; pointer-events: none; }
