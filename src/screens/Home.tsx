@@ -7,8 +7,9 @@ import { useApp } from '../state'
 export function GreetingHeader({ summary, onSummary }: { summary: string; onSummary?: () => void }) {
   return (
     <div className="hdr-greeting brand-bg">
-      <div className="hdr-greeting__courtlines" />
       <div className="hdr-greeting__row">
+        {/* kit: court lines end 9 px above the title, wherever the title sits */}
+        <div className="hdr-greeting__courtlines" aria-hidden />
         <p className="h3 hdr-greeting__title">Let’s play padel,<br />Katerine!</p>
         <div className="row gap8">
           <IconButton icon="bell" label="Notifications" trackId="home:notifications" />
