@@ -21,7 +21,7 @@ function minExpiry(rs: Requester[]) {
 
 /* ───────────── Home after booking: the notification arrives ───────────── */
 export function HomeMatchScreen() {
-  const { config, push, requestsArrived, setRequestsArrived, decisions } = useApp()
+  const { config, push, requestsArrived, setRequestsArrived, decisions, openProfile } = useApp()
   const requesters = useRequesters()
   const club = clubs.find((c) => c.id === config.clubId)!
   const d = dayAt(config.dayIndex)
@@ -49,7 +49,7 @@ export function HomeMatchScreen() {
 
   const lineup = [
     { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true },
-    ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1) })),
+    ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), id: r.id, onTap: () => openProfile(r.id) })),
   ]
   while (lineup.length < 4) lineup.push({ available: true } as never)
 
@@ -113,7 +113,7 @@ export function HomeMatchScreen() {
 let ballsHavePlayed = false // the ball drop plays once per session, the first time Match details opens
 
 export function MatchDetailsScreen() {
-  const { config, push, back, requestsArrived, decisions } = useApp()
+  const { config, push, back, requestsArrived, decisions, openProfile } = useApp()
   const requesters = useRequesters()
   const club = clubs.find((c) => c.id === config.clubId)!
   const court = courts.find((c) => c.id === config.courtId)!
@@ -123,7 +123,7 @@ export function MatchDetailsScreen() {
   const admitted = requesters.filter((r) => decisions[r.id] === 'admitted')
   const slots = [
     { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true },
-    ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), you: false })),
+    ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), you: false, id: r.id, onTap: () => openProfile(r.id) })),
   ]
   const [dropBalls] = useState(() => {
     const play = !ballsHavePlayed

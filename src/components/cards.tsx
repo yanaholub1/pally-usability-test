@@ -4,7 +4,7 @@ import { asset } from './assets'
 import { Avatar, Badge, Button, IconButton, TButton } from './ui'
 import { track } from '../log'
 
-export type LineupSlot = { name?: string; photo?: string; level?: string; badgeIcon?: string; available?: boolean; you?: boolean }
+export type LineupSlot = { name?: string; photo?: string; level?: string; badgeIcon?: string; available?: boolean; you?: boolean; /** opens that player's profile */ onTap?: () => void; id?: string }
 
 /** Event card. `header` mirrors the Figma EventCard Header property. */
 export function EventCard({
@@ -48,9 +48,7 @@ export function EventCard({
               <div key={ti} style={{ display: 'contents' }}>
                 {ti === 1 && <div className="lineup-full__divider" />}
                 <div className="lineup-full__team">
-                  {team.map((s, i) => (
-                    <Avatar key={i} size={64} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
-                  ))}
+                  {team.map((s, i) => <LineupPlayer key={i} s={s} trackId={trackId} />)}
                 </div>
               </div>
             ))}
@@ -78,6 +76,13 @@ export function EventCard({
       {card}
     </div></div>
   )
+}
+
+/** One player in a 2 v 2 lineup. Players with a profile are a button (their tap doesn't open the event). */
+function LineupPlayer({ s, trackId }: { s: LineupSlot; trackId: string }) {
+  const av = <Avatar size={64} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
+  if (!s.onTap) return av
+  return <TButton className="lineup-tap" aria-label={`${s.name}'s profile`} trackId={`${trackId}:player:${s.id ?? s.name}`} onClick={s.onTap}>{av}</TButton>
 }
 
 /** Lineup, Layout=Lead + players: lead on its own row with name; players below (names only for 1–2 players) */
@@ -180,9 +185,7 @@ export function PlayersCard({ slots }: { slots: LineupSlot[] }) {
           <div key={ti} style={{ display: 'contents' }}>
             {ti === 1 && <div className="lineup-full__divider" />}
             <div className="lineup-full__team">
-              {team.map((s, i) => (
-                <Avatar key={i} size={64} name={s.name} photo={s.photo} level={s.level} available={s.available} showName nameNode={s.available ? 'Available' : s.you ? 'You' : s.name} />
-              ))}
+              {team.map((s, i) => <LineupPlayer key={i} s={s} trackId="details:players" />)}
             </div>
           </div>
         ))}

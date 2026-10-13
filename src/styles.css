@@ -425,3 +425,7 @@ p { margin: 0; }
 /* Apple Pay button content (Figma: "Pay with" + Apple Pay mark, system font as Apple requires) */
 .apple-pay { display: inline-flex; align-items: center; gap: 4px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; font-size: 20px; line-height: 28px; font-weight: 500; letter-spacing: -0.2px; }
 .apple-pay img { display: block; margin-bottom: 2px; }
+
+/* Lineup player that opens a profile: looks the same, the whole avatar + name is the tap target */
+.lineup-tap { display: flex; flex: 1; min-width: 0; text-align: left; border-radius: 12px; }
+.lineup-tap:active { opacity: .7; }
