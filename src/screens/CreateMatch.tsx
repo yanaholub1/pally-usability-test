@@ -432,10 +432,10 @@ export function ReviewScreen() {
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 24px' }}>
           <SummaryCard status="joined" statusLabel="Match review" title="Open match" subtitle="Visible on “Find”" />
           <div className="info-card">
-            <InfoRow icon="calendar" trackId="review:edit-time" onClick={() => push('club')}>{fmt.long(d)} • {config.time}–{endTime(config.time ?? '18:30', config.duration)}</InfoRow>
-            <InfoRow icon="location-pin" trackId="review:edit-court" onClick={() => push('club')}>{club.name} • {court.name.replace('Court ', 'Court ')} • {court.short}</InfoRow>
-            <InfoRow icon="racket" trackId="review:edit-type" onClick={() => push('matchType')}>{config.type === 'competitive' ? 'Competitive • Results affect your level' : 'Casual • Results don’t affect your level'}</InfoRow>
-            <InfoRow icon="person-shield" trackId="review:edit-approval" onClick={() => push('approval')}>Your approval is required • You review each player</InfoRow>
+            <InfoRow icon="calendar" trackId="review:edit-time" onClick={() => push('club')}><b>{fmt.long(d)}</b> • <span className="nowrap">{config.time}–{endTime(config.time ?? '18:30', config.duration)}</span></InfoRow>
+            <InfoRow icon="location-pin" trackId="review:edit-court" onClick={() => push('club')}><b>{club.name}</b> • {court.name} • {court.short}</InfoRow>
+            <InfoRow icon="racket" trackId="review:edit-type" onClick={() => push('matchType')}><b>{config.type === 'competitive' ? 'Competitive' : 'Casual'}</b> • {config.type === 'competitive' ? 'Results affect your level' : 'Results don’t affect your level'}</InfoRow>
+            <InfoRow icon="person-shield" trackId="review:edit-approval" onClick={() => push('approval')}><b>Your approval is required</b> • You review each player</InfoRow>
           </div>
           <StatsCard items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Court', `€${court.price}`]]} />
           <MoreInfo dayIndex={config.dayIndex} time={config.time ?? '18:30'} />

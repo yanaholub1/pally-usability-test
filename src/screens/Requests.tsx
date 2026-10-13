@@ -148,7 +148,7 @@ export function MatchDetailsScreen() {
           )}
           <CardWithTray action="Add to calendar" trackId="details:add-to-calendar">
             <div className="info-card">
-              <InfoRow icon="calendar"><b>{fmt.long(d)}</b> • {config.time}–{endTime(config.time ?? '18:30', config.duration)}</InfoRow>
+              <InfoRow icon="calendar"><b>{fmt.long(d)}</b> • <span className="nowrap">{config.time}–{endTime(config.time ?? '18:30', config.duration)}</span></InfoRow>
               <InfoRow icon="location-pin"><b>{club.name}</b> • {court.name} • {court.short}</InfoRow>
               <InfoRow icon="racket"><b>{config.type === 'competitive' ? 'Competitive' : 'Casual'}</b> • {config.type === 'competitive' ? 'Results affect your level' : 'Results don’t affect your level'}</InfoRow>
               <InfoRow icon="person-shield"><b>Your approval is required</b> • You are the match host</InfoRow>

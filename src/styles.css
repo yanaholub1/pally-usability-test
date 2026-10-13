@@ -411,3 +411,5 @@ p { margin: 0; }
 .pinned-search--on { visibility: visible; opacity: 1; transform: none; transition: opacity .18s ease, transform .18s ease; }
 .pinned-search .chip-row { margin-right: 0; }
 .search-summary { display: flex; align-items: center; gap: 8px; height: 48px; margin-right: 20px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; font-weight: 500; font-size: 16px; line-height: 20px; color: var(--gray-900); text-align: left; min-width: 0; }
+
+.nowrap { white-space: nowrap; }
