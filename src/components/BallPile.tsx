@@ -52,7 +52,9 @@ const BALLS: Ball[] = [
   { n: 21, x: 331.215, y: 56.698, r: -78.056, flip: true, drop: { r0: -51.444, x0: -3.04, y0: -199.778, tS: 0.2355, tL: 0.579, tB: 0.6475, tE: 0.731, s1: 0.5785, s2: 0.617 } },
   { n: 22, x: 107.988, y: 53.247, r: 11.944, flip: true, drop: { r0: -15.991, x0: 5.83, y0: -213.411, tS: 0.228, tL: 0.576, tB: 0.6445, tE: 0.728, s1: 0.575, s2: 0.614 } },
   { n: 23, x: 211.925, y: 140.559, r: -78.056, flip: true, drop: { r0: -113.158, x0: 1.2, y0: -265.611, tS: 0.031, tL: 0.398, tB: 0.4665, tE: 0.55, s1: 0.3975, s2: 0.436 } },
-  { n: 24, x: 214.789, y: 112.107, r: -101.944 },
+  // Ball 24 is static in the Figma loop but peeks above the content sheet, so in a one-shot drop it looked stuck.
+  // It now drops too, just ahead of its neighbour 23 (timings derived from ball 23).
+  { n: 24, x: 214.789, y: 112.107, r: -101.944, drop: { r0: -128.4, x0: -4.2, y0: -258.0, tS: 0.012, tL: 0.379, tB: 0.4475, tE: 0.531, s1: 0.3785, s2: 0.417 } },
   { n: 25, x: 298.684, y: 125.236, r: 11.944, flip: true },
   { n: 26, x: 283.623, y: 130.919, r: -78.056, flip: true, drop: { r0: -47.795, x0: 11.849, y0: -289.438, tS: 0.089, tL: 0.4645, tB: 0.5325, tE: 0.6165, s1: 0.4635, s2: 0.5025 } },
   { n: 27, x: 331.216, y: 130.919, r: -78.056, flip: true, drop: { r0: -116.296, x0: 11.433, y0: -277.982, tS: 0.0975, tL: 0.468, tB: 0.5365, tE: 0.62, s1: 0.4675, s2: 0.506 } },
