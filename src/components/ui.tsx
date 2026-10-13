@@ -25,7 +25,7 @@ export function TButton({ trackId, trackData, onClick, children, disabled, ...re
 }
 
 type BtnProps = {
-  variant?: 'primary' | 'secondary' | 'neutral' | 'ghost' | 'danger2' | 'black' | 'on-brand'
+  variant?: 'primary' | 'secondary' | 'neutral' | 'ghost' | 'danger2' | 'black' | 'on-brand' | 'ghost-on-brand'
   size?: 'sm' | 'lg'
   icon?: string
   fill?: boolean
@@ -206,7 +206,7 @@ function tintFor(name: string) {
   return tints[h % tints.length]
 }
 
-export function Avatar({ name, photo, level, size = 56, available, showName, nameNode }: { name?: string; photo?: string; level?: string; size?: number; available?: boolean; showName?: boolean; nameNode?: ReactNode }) {
+export function Avatar({ name, photo, level, badgeIcon, size = 56, available, showName, nameNode }: { name?: string; photo?: string; level?: string; badgeIcon?: string; size?: number; available?: boolean; showName?: boolean; nameNode?: ReactNode }) {
   const src = photo ? asset('avatars', photo) : undefined
   const mascotAvailable = asset('illustrations', 'mascot-available')
   const mascotPlaceholder = asset('illustrations', 'mascot-placeholder')
@@ -225,7 +225,7 @@ export function Avatar({ name, photo, level, size = 56, available, showName, nam
   const av = (
     <div className={`avatar ${sizeCls}`} style={{ width: size, height: size }}>
       {tile}
-      {level && <LevelBadge level={level} />}
+      {(level || badgeIcon) && <LevelBadge level={level} icon={badgeIcon} />}
     </div>
   )
   if (!showName) return av
@@ -238,7 +238,7 @@ export function Avatar({ name, photo, level, size = 56, available, showName, nam
 }
 
 /** Level badge (kit: Level badge, Type=Player) — lime ball with seams */
-export function LevelBadge({ level }: { level: string }) {
+export function LevelBadge({ level, icon }: { level?: string; icon?: string }) {
   return (
     <span className="avatar__level">
       {/* Ball artwork from the kit export (Level badge, Type=Player); the level is live text on top */}
@@ -251,7 +251,7 @@ export function LevelBadge({ level }: { level: string }) {
           <path d="M8.64578 -14.1825C9.47711 -8.79969 10.1122 1.96036 6.99951 5.5C2.47774 10.6419 -6.00523 7.28959 -9.00049 4.5M8.64499 25.0009C13.8961 18.4995 15.9995 19.4996 23.0002 19.4996" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
         </g>
       </svg>
-      <span>{level}</span>
+      {icon ? <span style={{ display: 'grid' }}><Icon name={icon} size={14} /></span> : <span>{level}</span>}
     </span>
   )
 }
@@ -313,12 +313,13 @@ export function SummaryCard({ status, statusLabel, title, subtitle, actions }: {
   )
 }
 
-/** EventDetails/CardWithTray — a card with a grey tray (one Ghost action) tucked underneath */
-export function CardWithTray({ children, action, trackId, onAction }: { children: ReactNode; action: string; trackId: string; onAction?: () => void }) {
+/** EventDetails/CardWithTray — a card with a tray (one Ghost action) tucked underneath.
+ *  emphasis 'brand' (blue tray, white label) only when the user must act; at most one per screen. */
+export function CardWithTray({ children, action, trackId, onAction, emphasis = 'default' }: { children: ReactNode; action: string; trackId: string; onAction?: () => void; emphasis?: 'default' | 'brand' }) {
   return (
     <div className="with-tray">
       <div>{children}</div>
-      <div className="card-tray"><Button variant="ghost" trackId={trackId} onClick={onAction}>{action}</Button></div>
+      <div className={`card-tray ${emphasis === 'brand' ? 'card-tray--brand' : ''}`}><Button variant={emphasis === 'brand' ? 'ghost-on-brand' : 'ghost'} trackId={trackId} onClick={onAction}>{action}</Button></div>
     </div>
   )
 }

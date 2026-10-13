@@ -138,6 +138,8 @@ p { margin: 0; }
 .btn--danger2:active:not([aria-disabled="true"]) { color: #8e1901; border-color: #8e1901; }
 .btn--danger2[aria-disabled="true"] { color: #feb1a0; border-color: #feb1a0; cursor: default; }
 .btn--black { background: #000; color: #fff; }
+.btn--ghost-on-brand { background: transparent; color: #fff; }
+.btn--ghost-on-brand:active:not([aria-disabled="true"]) { background: rgba(255,255,255,.16); }
 .btn--on-brand { background: transparent; color: #fff; border-color: #fff; }
 .btn--fill { flex: 1; min-width: 0; }
 .icon-btn { width: 40px; height: 40px; padding: 0; flex-shrink: 0; }
@@ -367,6 +369,7 @@ p { margin: 0; }
 .with-tray { display: flex; flex-direction: column; }
 .with-tray > :first-child { position: relative; z-index: 1; }
 .card-tray { margin-top: -24px; padding: 28px 16px 4px; background: var(--gray-200); border-radius: 0 0 24px 24px; display: flex; justify-content: center; }
+.card-tray--brand { background: var(--brand-500); }
 .summary-card { border: 1px solid var(--gray-300); border-radius: 24px; background: #fff; overflow: hidden; padding-bottom: 16px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
 .summary-card__strip { width: 100%; padding: 6px 0; text-align: center; font-weight: 500; font-size: 12px; line-height: 16px; text-transform: uppercase; }
 .summary-card__strip--action { background: #fee5dc; color: #6c2000; }

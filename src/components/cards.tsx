@@ -3,19 +3,22 @@ import { Icon } from './Icon'
 import { asset } from './assets'
 import { Avatar, Badge, Button, IconButton, TButton } from './ui'
 
-export type LineupSlot = { name?: string; photo?: string; level?: string; available?: boolean; you?: boolean }
+export type LineupSlot = { name?: string; photo?: string; level?: string; badgeIcon?: string; available?: boolean; you?: boolean }
 
 /** Event card. `header` mirrors the Figma EventCard Header property. */
 export function EventCard({
-  header, tags, title, lineup, location, action, compact, trackId, onOpen,
+  header, tags, title, date, lineup, location, action, layout = 'match', trackId, onOpen,
 }: {
   header?: { tone: 'blue' | 'grey' | 'lime'; content: ReactNode }
   tags: { icon?: string; label: string; accent?: boolean }[]
   title: string
+  /** Lessons/tournaments: date line under the title (matches use the date as the title) */
+  date?: string
   lineup: LineupSlot[]
   location: string
   action: ReactNode
-  compact?: boolean
+  /** Lineup layout (kit Lineup, Density=Full): 2 v 2 match, or a lead (coach) row above the players */
+  layout?: 'match' | 'lead'
   trackId: string
   onOpen?: () => void
 }) {
@@ -27,13 +30,12 @@ export function EventCard({
         ))}
       </div>
       <TButton trackId={`${trackId}:open`} onClick={onOpen} style={{ display: 'block', width: '100%' }}>
-        <p className="h5 ellipsis" style={{ marginBottom: 16 }}>{title}</p>
-        {compact ? (
-          <div className="row gap8">
-            {lineup.map((s, i) => (
-              <Avatar key={i} name={s.name} photo={s.photo} level={s.level} available={s.available} />
-            ))}
-          </div>
+        <div className="stack gap8" style={{ marginBottom: 16 }}>
+          <p className="h5">{title}</p>
+          {date && <span className="row gap4"><Icon name="calendar" size={18} /><span className="label16">{date}</span></span>}
+        </div>
+        {layout === 'lead' ? (
+          <LeadLineup slots={lineup} />
         ) : (
           <div className="lineup-full">
             {[lineup.slice(0, 2), lineup.slice(2, 4)].map((team, ti) => (
@@ -64,6 +66,22 @@ export function EventCard({
     <div className={`event-frame ${header.tone === 'blue' ? 'event-frame--blue' : header.tone === 'lime' ? '' : 'event-frame--grey'}`} style={header.tone === 'lime' ? { background: 'var(--lime-soft)' } : undefined}>
       <div className="event-frame__strip">{header.content}</div>
       {card}
+    </div>
+  )
+}
+
+/** Lineup, Layout=Lead + players: lead on its own row with name; players below (names only for 1–2 players) */
+function LeadLineup({ slots }: { slots: LineupSlot[] }) {
+  const [lead, ...players] = slots
+  const showNames = players.length <= 2
+  return (
+    <div className="stack gap12">
+      <Avatar name={lead.name} photo={lead.photo} badgeIcon={lead.badgeIcon} level={lead.level} showName />
+      <div className="row gap8">
+        {players.map((s, i) => (
+          <Avatar key={i} name={s.name} photo={s.photo} level={s.level} available={s.available} showName={showNames} nameNode={s.available ? 'Available' : s.name} />
+        ))}
+      </div>
     </div>
   )
 }

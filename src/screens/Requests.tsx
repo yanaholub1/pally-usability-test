@@ -86,7 +86,7 @@ export function HomeMatchScreen() {
 
   return (
     <>
-      <HomeScaffold summary={`1 upcoming${requestsArrived && pending.length ? ` · ${pending.length} to review` : ''}`} top={card} />
+      <HomeScaffold summary="1 upcoming" top={card} />
       {banner !== 'hidden' && (
         <TButton
           className={`banner ${banner === 'leaving' ? 'leaving' : ''}`}
@@ -140,7 +140,7 @@ export function MatchDetailsScreen() {
         <BallHero onBack={back} animateBalls={dropBalls} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 40px' }}>
           {requestsArrived && pending.length > 0 ? (
-            <CardWithTray action="See requests" trackId="details:see-requests" onAction={() => push('requests')}>
+            <CardWithTray emphasis="brand" action="See requests" trackId="details:see-requests" onAction={() => push('requests')}>
               <SummaryCard status="action" statusLabel={`${pending.length} players requested to join`} title="Open match" subtitle="Visible on “Find”" actions={summaryActions} />
             </CardWithTray>
           ) : (

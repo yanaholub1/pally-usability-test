@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Icon } from '../components/Icon'
 import { EmptyState, EventCard, PromoBanner } from '../components/cards'
 import { Button, IconButton, NavBar, SectionHeader, TButton } from '../components/ui'
-import { useApp } from '../state'
+import { dayAt, fmt, useApp } from '../state'
 
 export function GreetingHeader({ summary, onSummary }: { summary: string; onSummary?: () => void }) {
   return (
@@ -52,12 +52,13 @@ export function LessonCard() {
       <SectionHeader title="Level up your game" link="See all" />
       <EventCard
         trackId="home:lesson"
-        compact
-        tags={[{ icon: 'hat', label: 'Lesson' }, { label: '€13.50' }]}
+        layout="lead"
+        tags={[{ icon: 'hat', label: 'Lesson' }, { icon: 'bars', label: '3.0 – 3.5' }]}
         title="Group lesson to refine your technique"
-        lineup={[{ name: 'Coach Albert', photo: 'coach' }, { name: 'Iris', photo: 'iris', level: '3.1' }, { name: 'Nora', photo: 'nora', level: '3.4' }, { available: true }, { available: true }]}
+        date={`${fmt.long(dayAt(2))} • 18:30`}
+        lineup={[{ name: 'Coach Albert', photo: 'coach', badgeIcon: 'hat' }, { name: 'Iris', photo: 'iris', level: '3.1' }, { name: 'Nora', photo: 'nora', level: '3.4' }, { available: true }, { available: true }]}
         location="Padel 7"
-        action={<Button variant="secondary" icon="plus" trackId="home:lesson:join">Join</Button>}
+        action={<Button icon="plus" trackId="home:lesson:join">Join</Button>}
       />
     </div>
   )
