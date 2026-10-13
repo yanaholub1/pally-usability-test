@@ -9,7 +9,7 @@ import { HomeMatchScreen, MatchDetailsScreen, RequestsScreen } from './screens/R
 import { ProfileOverlay } from './screens/Profile'
 import { OwnProfileOverlay } from './screens/OwnProfile'
 import { requestersFor } from './data'
-import { setCurrentScreen, track } from './log'
+import { setCurrentScreen, setLastPointer, track } from './log'
 
 const screens: Record<ScreenId, () => React.ReactElement> = {
   home: HomeEmpty,
@@ -114,10 +114,36 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone, 
   const deviceRef = useRef<HTMLDivElement>(null)
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const el = e.target as HTMLElement
-    if (el.closest('button, a, input, [role="slider"], [data-track]')) return
     const rect = deviceRef.current!.getBoundingClientRect()
+    setLastPointer(e.clientX - rect.left, e.clientY - rect.top, rect.width, rect.height)
+    if (el.closest('button, a, input, [role="slider"], [data-track]')) return
     const label = (el.closest('[aria-label]') as HTMLElement | null)?.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 60) ?? ''
     track('tap_dead', label, { x: Math.round(e.clientX - rect.left), y: Math.round(e.clientY - rect.top), w: Math.round(rect.width) })
+  }, [])
+
+  // Scroll depth: when a list stops moving, log how far down it is (and the deepest point reached on this screen)
+  useEffect(() => {
+    const dev = deviceRef.current
+    if (!dev) return
+    const deepest = new WeakMap<Element, number>()
+    let t: ReturnType<typeof setTimeout> | null = null
+    let el: HTMLElement | null = null
+    const onScroll = (e: Event) => {
+      const target = e.target as HTMLElement
+      if (!target || !(target instanceof HTMLElement) || target.scrollHeight <= target.clientHeight) return
+      el = target
+      if (t) clearTimeout(t)
+      t = setTimeout(() => {
+        if (!el) return
+        const max = el.scrollHeight - el.clientHeight
+        const depth = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0
+        const prev = deepest.get(el) ?? 0
+        if (depth > prev) deepest.set(el, depth)
+        track('scroll', el.className.split(' ')[0] || 'scroll', { top: Math.round(el.scrollTop), max: Math.round(max), depth, deepest: Math.max(prev, depth), view_h: el.clientHeight })
+      }, 450)
+    }
+    dev.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    return () => { dev.removeEventListener('scroll', onScroll, { capture: true }); if (t) clearTimeout(t) }
   }, [])
 
   const Screen = screens[current]

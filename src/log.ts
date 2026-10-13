@@ -18,12 +18,21 @@ const startedAt = performance.now()
 const buffer: LogEvent[] = []
 const sinks = new Set<Sink>()
 let currentScreen = 'unknown'
+// Where the last finger/mouse press landed, in device pixels (set by the prototype frame).
+// Taps get it attached so the results view can show a dot where each tap happened.
+let lastPointer: { x: number; y: number; w: number; h: number; at: number } | null = null
+export function setLastPointer(x: number, y: number, w: number, h: number) {
+  lastPointer = { x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), at: performance.now() }
+}
 
 export function setCurrentScreen(name: string) {
   currentScreen = name
 }
 
 export function track(type: string, target?: string, data?: Record<string, unknown>) {
+  if ((type === 'tap' || type === 'tap_disabled') && lastPointer && performance.now() - lastPointer.at < 1500) {
+    data = { ...data, x: lastPointer.x, y: lastPointer.y, w: lastPointer.w, h: lastPointer.h }
+  }
   const e: LogEvent = {
     t_ms: Math.round(performance.now() - startedAt),
     client_ts: new Date().toISOString(),
