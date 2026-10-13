@@ -3,6 +3,7 @@ import { Icon } from './Icon'
 import { BallPile } from './BallPile'
 import { asset } from './assets'
 import { track } from '../log'
+import { useApp } from '../state'
 
 /* ───────── Tracked button: every tap is logged with a readable id ───────── */
 type TBProps = ButtonHTMLAttributes<HTMLButtonElement> & { trackId: string; trackData?: Record<string, unknown> }
@@ -356,6 +357,7 @@ export function Sheet({ open, onClose, title, children, trackId }: { open: boole
 
 /* ───────── Nav bar ───────── */
 export function NavBar({ active }: { active: 'home' | 'find' | 'messages' | 'profile' }) {
+  const { goTab } = useApp()
   const items: [typeof active, string, string][] = [
     ['home', 'house', 'Home'],
     ['find', 'search', 'Find'],
@@ -365,7 +367,7 @@ export function NavBar({ active }: { active: 'home' | 'find' | 'messages' | 'pro
   return (
     <nav className="navbar">
       {items.map(([k, ic, label]) => (
-        <TButton key={k} className={k === active ? 'on' : ''} trackId={`nav:${k}`}>
+        <TButton key={k} className={k === active ? 'on' : ''} trackId={`nav:${k}`} trackData={k === active ? { already_here: true } : undefined} onClick={() => { if (k !== active) goTab(k) }}>
           <Icon name={ic} />
           {label}
         </TButton>

@@ -55,6 +55,8 @@ export type AppCtx = {
   push: (id: ScreenId) => void
   back: () => void
   reset: (id: ScreenId) => void
+  /** Tab bar: Home returns to the current Home state (empty, or with the booked match); Find opens Find */
+  goTab: (tab: 'home' | 'find' | 'messages' | 'profile') => void
   requestsArrived: boolean
   setRequestsArrived: (v: boolean) => void
   decisions: Record<string, Decision>

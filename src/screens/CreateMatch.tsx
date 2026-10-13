@@ -31,13 +31,13 @@ function FilterBar({ children }: { children: ReactNode }) {
 
 /* ───────────── Find activities (search tab) ───────────── */
 export function FindScreen() {
-  const { push, back } = useApp()
+  const { push } = useApp()
   const [sheet, setSheet] = useState(true)
   const [choice, setChoice] = useState<'Matches' | 'Lessons' | 'Court' | 'Tournaments'>('Matches')
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <TitleHeader title="Find activities" onBack={back} />
+        <TitleHeader title="Find activities" />
         <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
           <div className="field-group">
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:what" onClick={() => setSheet(true)}><Icon name="search" /> {choice === 'Court' ? 'Courts' : choice}</TButton>
@@ -76,11 +76,11 @@ export function FindScreen() {
 
 /* ───────────── Find courts ───────────── */
 export function BookCourtScreen() {
-  const { push, back, setConfig } = useApp()
+  const { push, setConfig } = useApp()
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <TitleHeader title="Find courts" onBack={back} />
+        <TitleHeader title="Find courts" />
         <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
           <div className="field-group">
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:what"><Icon name="field" /> Courts</TButton>

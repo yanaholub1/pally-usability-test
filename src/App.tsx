@@ -46,6 +46,8 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone }
   const [decisions, setDecisions] = useState<Record<string, Decision>>({})
   const [profile, setProfile] = useState<string | null>(null)
   const milestones = useRef(new Set<string>())
+  // Which Home the tab bar returns to: empty Home before the match is booked, Home with the match after
+  const homeScreen = useRef<ScreenId>(['homeMatch', 'matchDetails', 'requests'].includes(start) ? 'homeMatch' : 'home')
 
   const current = stack[stack.length - 1]
 
@@ -67,7 +69,20 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone }
         setStack((s) => (s.length > 1 ? s.slice(0, -1) : s))
         setNonce((n) => n + 1)
       },
-      reset: (id) => { setDir('fade'); setStack([id]); setNonce((n) => n + 1) },
+      reset: (id) => {
+        if (id === 'homeMatch') homeScreen.current = 'homeMatch'
+        setDir('fade'); setStack([id]); setNonce((n) => n + 1)
+      },
+      goTab: (tab) => {
+        // Messages and Profile aren't built: the tap is logged by the tab button, nothing else happens
+        if (tab !== 'home' && tab !== 'find') return
+        const target: ScreenId = tab === 'home' ? homeScreen.current : 'find'
+        setStack((s) => {
+          if (s[s.length - 1] === target && s.length === 1) return s
+          return [target]
+        })
+        setDir('fade'); setNonce((n) => n + 1)
+      },
       requestsArrived,
       setRequestsArrived,
       decisions,
