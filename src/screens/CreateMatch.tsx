@@ -247,39 +247,72 @@ export function VisibilityScreen() {
 }
 
 /* ───────────── Step 2: match type + level range ───────────── */
+/**
+ * Kit LevelRangeSlider (UI kit 436:205). 42 px track, 4 px dots every 10 px (grey; blue inside the range),
+ * 4 px blue handles, the host's ball on top, and a value bubble while dragging.
+ * Scale 0–7 maps to the track inset by 18 px on each side, as in the kit.
+ */
+const INSET = 18
+const PITCH = 10
 function RangeSlider({ value, onChange }: { value: [number, number]; onChange: (v: [number, number]) => void }) {
   const ref = useRef<HTMLDivElement>(null)
-  const pct = (v: number) => (v / 7) * 100
+  const [w, setW] = useState(330)
+  const [dragging, setDragging] = useState<0 | 1 | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setW(el.offsetWidth))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const span = w - INSET * 2
+  // positions are measured from the outer edge (as in Figma); children sit inside the 1 px border
+  const x = (v: number) => INSET - 1 + (span * v) / 7
   const startDrag = (which: 0 | 1) => (e: React.PointerEvent) => {
     e.preventDefault()
+    setDragging(which)
     const el = ref.current!
+    let latest = value
     const move = (ev: PointerEvent) => {
       const r = el.getBoundingClientRect()
-      let v = Math.round((((ev.clientX - r.left) / r.width) * 7) * 10) / 10
+      let v = Math.round(((ev.clientX - r.left - INSET) / span) * 7 * 10) / 10
       v = Math.max(0, Math.min(7, v))
-      const next: [number, number] = [...value] as [number, number]
-      if (which === 0) next[0] = Math.min(v, value[1] - 0.2)
-      else next[1] = Math.max(v, value[0] + 0.2)
+      const next: [number, number] = [...latest] as [number, number]
+      // The range must always include the host's level (kit rule); a handle can slide behind the ball
+      if (which === 0) next[0] = Math.min(v, HOST.level)
+      else next[1] = Math.max(v, HOST.level)
+      latest = next
       onChange(next)
     }
     const up = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
-      track('slider_change', 'matchType:range')
+      setDragging(null)
+      track('slider_change', 'matchType:range', { min: latest[0], max: latest[1] })
     }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
   }
+  // Grid of dots: centres at INSET+2, INSET+12, … (kit: 18 + 4 px dot, 10 px pitch)
+  const dotCount = Math.floor((span - 4) / PITCH) + 1
+  const dots = Array.from({ length: dotCount }, (_, i) => INSET - 1 + 2 + i * PITCH)
+  const lo = x(value[0])
+  const hi = x(value[1])
   return (
-    <div className="stack gap8">
+    <div className="stack gap12">
       <div className="range" ref={ref}>
-        <div className="range__dots" />
-        <div className="range__sel" style={{ left: `${pct(value[0])}%`, width: `${pct(value[1] - value[0])}%` }} />
-        <div className="range__ball" style={{ left: `${pct(HOST.level)}%` }}>{HOST.level.toFixed(2)}</div>
-        <div className="range__handle" style={{ left: `${pct(value[0])}%` }} onPointerDown={startDrag(0)} role="slider" aria-label="Minimum level" aria-valuenow={value[0]} />
-        <div className="range__handle" style={{ left: `${pct(value[1])}%` }} onPointerDown={startDrag(1)} role="slider" aria-label="Maximum level" aria-valuenow={value[1]} />
+        {dots.map((cx) => (
+          <span key={cx} className={`range__dot ${cx > lo + 2 && cx < hi - 2 ? 'range__dot--in' : ''}`} style={{ left: cx - 2 }} />
+        ))}
+        <div className="range__sel" style={{ left: lo - 2, width: hi - lo + 4 }} />
+        <span className="range__bar" style={{ left: lo - 2 }} />
+        <span className="range__bar" style={{ left: hi - 2 }} />
+        <div className="range__ball" style={{ left: x(HOST.level) }}>{HOST.level.toFixed(2)}</div>
+        {dragging !== null && <span className="range__bubble" style={{ left: dragging === 0 ? lo : hi }}>{value[dragging].toFixed(2)}</span>}
+        <div className="range__handle" style={{ left: lo }} onPointerDown={startDrag(0)} role="slider" aria-label="Minimum level" aria-valuemin={0} aria-valuemax={7} aria-valuenow={value[0]} />
+        <div className="range__handle" style={{ left: hi }} onPointerDown={startDrag(1)} role="slider" aria-label="Maximum level" aria-valuemin={0} aria-valuemax={7} aria-valuenow={value[1]} />
       </div>
-      <div className="row" style={{ justifyContent: 'space-between' }}><span className="label16">0.00</span><span className="label16">7.00</span></div>
+      <div className="row" style={{ justifyContent: 'space-between' }}><span className="label16 range__scale">0.00</span><span className="label16 range__scale">7.00</span></div>
     </div>
   )
 }
