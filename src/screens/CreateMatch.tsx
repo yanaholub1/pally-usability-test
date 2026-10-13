@@ -413,8 +413,14 @@ export function ApprovalScreen() {
 }
 
 /* ───────────── Step 5: review ───────────── */
+let reviewBallsPlayed = false // the ball drop plays the first time Match review opens (once per session, like Match details)
 export function ReviewScreen() {
   const { config, push, back } = useApp()
+  const [dropBalls] = useState(() => {
+    const play = !reviewBallsPlayed
+    reviewBallsPlayed = true
+    return play
+  })
   const club = clubs.find((c) => c.id === config.clubId)!
   const court = courts.find((c) => c.id === config.courtId)!
   const d = dayAt(config.dayIndex)
@@ -422,7 +428,7 @@ export function ReviewScreen() {
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <BallHero onBack={back} />
+        <BallHero onBack={back} animateBalls={dropBalls} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 24px' }}>
           <SummaryCard status="joined" statusLabel="Match review" title="Open match" subtitle="Visible on “Find”" />
           <div className="info-card">
