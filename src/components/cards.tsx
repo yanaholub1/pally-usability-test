@@ -112,7 +112,7 @@ export function ClubCard({ name, address, photo, onBook, trackId }: { name: stri
       <div className="club-card__scrim" />
       <div className="row gap12" style={{ position: 'relative' }}>
         <div className="row gap8 grow">
-          <Badge icon="calendar" variant="media">10+ slots</Badge>
+          <Badge icon="calendar" variant="media">10+ times</Badge>
           <Badge variant="media">From €17/hour</Badge>
         </div>
         <IconButton icon="heart" label="Save club" trackId={`${trackId}:save`} />
