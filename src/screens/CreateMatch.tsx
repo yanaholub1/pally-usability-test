@@ -501,11 +501,11 @@ export function PaymentScreen() {
             <div className="divider" />
             <div className="row" style={{ justifyContent: 'space-between' }}><span className="h6">Total</span><span className="h6">€{total.toFixed(2)}</span></div>
           </div>
-          <p className="body14 muted">This is a prototype: no real payment is made.</p>
         </div>
       </div>
       <BottomBar>
         <Button size="lg" variant="black" trackId="pay:apple-pay" onClick={() => push('booked')}>Pay with Apple Pay</Button>
+        <p className="body14 muted" style={{ textAlign: 'center', marginTop: 8 }}>This is a prototype: no real payment is made.</p>
       </BottomBar>
     </div>
   )
