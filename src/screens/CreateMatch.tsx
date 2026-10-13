@@ -457,7 +457,7 @@ export function MoreInfo({ dayIndex, time }: { dayIndex: number; time: string })
       <div className="info-card">
         <InfoRow icon="hour-glass">Cancels automatically if fewer than 4 players join by <b>{dayIndex === 0 ? 'today' : dayIndex === 1 ? 'tomorrow' : fmt.short(d)} at {endTime(time, -60)}</b></InfoRow>
         <InfoRow icon="calendar-x">Free cancellation by <b>{fmt.short(prev)}, {time}</b></InfoRow>
-        <InfoRow icon="calendar-x">Full refund <b>if the club cancels the match</b></InfoRow>
+        <InfoRow icon="refund">Full refund <b>if the club cancels the match</b></InfoRow>
       </div>
     </div>
   )
