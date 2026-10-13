@@ -8,7 +8,7 @@ import { useApp } from '../state'
 
 /** The host's own profile (Figma: Own profile — About / Stats / Reputation). Figures are the design's. */
 const ME = {
-  status: 'Active player', // 37 matches with ratings, played recently following: 30, followers: 44,
+  status: 'Active player', following: 30, followers: 44, // Active: 37 rated matches, played recently
   clubsVisited: 12, tournaments: 36, minutes: 900, playersMet: 24,
   languages: ['English', 'Spanish'], hand: 'Right', side: 'Right',
   matches: 37, wins: 12, levelTrend: '+0.4 over last 5 matches', confidence: 10,
