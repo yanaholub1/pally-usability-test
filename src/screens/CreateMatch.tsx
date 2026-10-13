@@ -515,7 +515,7 @@ export function PaymentScreen() {
 
 /* ───────────── Court booked ───────────── */
 export function BookedScreen() {
-  const { config, reset, milestone } = useApp()
+  const { config, reset, milestone, openProfile } = useApp()
   const club = clubs.find((c) => c.id === config.clubId)!
   const d = dayAt(config.dayIndex)
   const heart = asset('illustrations', 'booked-heart')
@@ -545,7 +545,7 @@ export function BookedScreen() {
             trackId="booked:card"
             tags={[{ icon: 'ball', label: 'Match' }, ...(config.gender && config.gender !== 'any' ? [{ icon: 'venus', label: genderLabel[config.gender] }] : []), { icon: 'racket', label: config.type === 'competitive' ? 'Competitive' : 'Casual' }]}
             title={`${fmt.long(d)} • ${config.time}`}
-            lineup={[{ name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true }, { available: true }, { available: true }, { available: true }]}
+            lineup={[{ name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true, id: 'me', onTap: () => openProfile('me') }, { available: true }, { available: true }, { available: true }]}
             location={`${club.name} • ${courts.find((c) => c.id === config.courtId)?.name ?? 'Court 1'}`}
             action={<Button variant="secondary" icon="chat" trackId="booked:message">Message</Button>}
           />

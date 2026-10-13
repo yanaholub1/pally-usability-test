@@ -48,7 +48,7 @@ export function HomeMatchScreen() {
   const touchY = useRef<number | null>(null)
 
   const lineup = [
-    { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true },
+    { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true, id: 'me', onTap: () => openProfile('me') },
     ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), id: r.id, onTap: () => openProfile(r.id) })),
   ]
   while (lineup.length < 4) lineup.push({ available: true } as never)
@@ -122,7 +122,7 @@ export function MatchDetailsScreen() {
   const pending = requesters.filter((r) => !decisions[r.id])
   const admitted = requesters.filter((r) => decisions[r.id] === 'admitted')
   const slots = [
-    { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true },
+    { name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true, id: 'me', onTap: () => openProfile('me') },
     ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), you: false, id: r.id, onTap: () => openProfile(r.id) })),
   ]
   const [dropBalls] = useState(() => {

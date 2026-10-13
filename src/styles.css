@@ -140,6 +140,8 @@ p { margin: 0; }
 .btn--black { background: #000; color: #fff; }
 .btn--ghost-on-brand { background: transparent; color: #fff; }
 .btn--ghost-on-brand:active:not([aria-disabled="true"]) { background: rgba(255,255,255,.16); }
+.btn--on-brand-solid { background: #fff; color: var(--brand-500); border-color: #fff; }
+.btn--on-brand-solid:active:not([aria-disabled="true"]) { background: var(--brand-50); }
 .btn--on-brand { background: transparent; color: #fff; border-color: #fff; }
 .btn--fill { flex: 1; min-width: 0; }
 .icon-btn { width: 40px; height: 40px; padding: 0; flex-shrink: 0; }
@@ -429,3 +431,18 @@ p { margin: 0; }
 /* Lineup player that opens a profile: looks the same, the whole avatar + name is the tap target */
 .lineup-tap { display: flex; flex: 1; min-width: 0; text-align: left; border-radius: 12px; }
 .lineup-tap:active { opacity: .7; }
+
+/* Own profile */
+.only-you { display: inline-flex; align-items: center; gap: 4px; color: var(--gray-700); white-space: nowrap; }
+.only-you__dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.avail-row { display: flex; align-items: center; gap: 12px; min-height: 42px; }
+.avail-day { width: 42px; height: 42px; flex-shrink: 0; display: grid; place-items: center; border: 1px solid var(--gray-300); border-radius: 8px; background: #fff; font-weight: 600; font-size: 16px; }
+.avail-day--on { background: var(--gray-100); border-color: var(--gray-900); }
+.avail-range { display: flex; align-items: center; gap: 4px; }
+.avail-time { width: 90px; height: 44px; border: 1px solid var(--gray-300); border-radius: 12px; background: #fff; font-weight: 500; font-size: 16px; display: grid; place-items: center; }
+.avail-dash { width: 16px; height: 1px; background: var(--gray-300); }
+.avail-btn { width: 40px; height: 40px; border: 1px solid var(--gray-300); border-radius: 50%; background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+.tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.feedback-card { border: 1px solid var(--gray-300); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #fff; }
+.feedback-tag { display: inline-flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--gray-300); border-radius: 12px; background: var(--gray-100); font-weight: 500; font-size: 16px; line-height: 20px; }
+.feedback-tag__n { font-size: 14px; }

@@ -7,6 +7,7 @@ import {
 } from './screens/CreateMatch'
 import { HomeMatchScreen, MatchDetailsScreen, RequestsScreen } from './screens/Requests'
 import { ProfileOverlay } from './screens/Profile'
+import { OwnProfileOverlay } from './screens/OwnProfile'
 import { requestersFor } from './data'
 import { setCurrentScreen, track } from './log'
 
@@ -127,6 +128,7 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone }
           <Screen />
         </div>
         {profileRequester && <ProfileOverlay r={profileRequester} returnScreen={current} onClose={() => setProfile(null)} />}
+        {profile === 'me' && <OwnProfileOverlay returnScreen={current} onClose={() => setProfile(null)} />}
         <HomeIndicator />
       </div>
     </Ctx.Provider>

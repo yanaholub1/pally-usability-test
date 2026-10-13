@@ -78,7 +78,7 @@ export function ProfileOverlay({ r, returnScreen, onClose }: { r: Requester; ret
               <Stat art="stat-players" fallback="handshake" value={String(r.playersMet)} label="Players met" />
             </div>
             <div className="row gap8">
-              <Button variant="on-brand" icon="follow" fill trackId="profile:follow">Follow</Button>
+              <Button variant="on-brand-solid" icon="follow" fill trackId="profile:follow">Follow</Button>
               <Button variant="on-brand" icon="chat" fill trackId="profile:message">Message</Button>
             </div>
           </div>

@@ -26,7 +26,7 @@ export function TButton({ trackId, trackData, onClick, children, disabled, ...re
 }
 
 type BtnProps = {
-  variant?: 'primary' | 'secondary' | 'neutral' | 'ghost' | 'danger2' | 'black' | 'on-brand' | 'ghost-on-brand'
+  variant?: 'primary' | 'secondary' | 'neutral' | 'ghost' | 'danger2' | 'black' | 'on-brand' | 'on-brand-solid' | 'ghost-on-brand'
   size?: 'sm' | 'lg'
   icon?: string
   fill?: boolean
