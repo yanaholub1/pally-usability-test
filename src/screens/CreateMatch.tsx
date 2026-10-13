@@ -433,7 +433,7 @@ export function ReviewScreen() {
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 24px' }}>
           <SummaryCard status="joined" statusLabel="Match review" title="Open match" subtitle="Visible on “Find”" />
           <div className="info-card">
-            <InfoRow icon="calendar" trackId="review:edit-time" onClick={() => push('club')}><b>{fmt.long(d)}</b> • <span className="nowrap">{config.time}–{endTime(config.time ?? '18:30', config.duration)}</span></InfoRow>
+            <InfoRow icon="calendar" trackId="review:edit-time" onClick={() => push('club')}><b>{fmt.longShortMonth(d)}</b> • <span className="nowrap">{config.time}–{endTime(config.time ?? '18:30', config.duration)}</span></InfoRow>
             <InfoRow icon="location-pin" trackId="review:edit-court" onClick={() => push('club')}><b>{club.name}</b> • {court.name} • {court.short}</InfoRow>
             <InfoRow icon="racket" trackId="review:edit-type" onClick={() => push('matchType')}><b>{config.type === 'competitive' ? 'Competitive' : 'Casual'}</b> • {config.type === 'competitive' ? 'Results affect your level' : 'Results don’t affect your level'}</InfoRow>
             <InfoRow icon="person-shield" trackId="review:edit-approval" onClick={() => push('approval')}><b>Your approval is required</b> • You review each player</InfoRow>

@@ -82,6 +82,8 @@ export const fmt = {
   weekdayShort: (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short' }),
   monthShort: (d: Date) => d.toLocaleDateString('en-GB', { month: 'short' }),
   long: (d: Date) => d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+  /** "Wednesday, Oct 14" */
+  longShortMonth: (d: Date) => d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
   short: (d: Date) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
 }
 
