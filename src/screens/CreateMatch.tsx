@@ -482,8 +482,8 @@ export function PaymentScreen() {
         </div>
         <div className="stack gap12">
           <SectionHeader title="How would you like to pay?" />
-          <RadioCard icon="profile" title={`Pay my share • ${eur(share + BOOKING_FEE)}`} desc="Other players will pay their share when they join" selected={config.payMode === 'share'} onSelect={() => setConfig({ payMode: 'share' })} trackId="pay:share" />
-          <RadioCard icon="users" title={`Pay the full court price • ${eur(court.price + BOOKING_FEE)}`} desc="Other players can reimburse you separately" selected={config.payMode === 'full'} onSelect={() => setConfig({ payMode: 'full' })} trackId="pay:full" />
+          <RadioCard icon="profile" title={`Pay my share • ${eur(share + BOOKING_FEE)}`} desc="Others will pay their share when they join" selected={config.payMode === 'share'} onSelect={() => setConfig({ payMode: 'share' })} trackId="pay:share" />
+          <RadioCard icon="users" title={`Pay for the whole court • ${eur(court.price + BOOKING_FEE)}`} desc="Settle up with the other players yourself" selected={config.payMode === 'full'} onSelect={() => setConfig({ payMode: 'full' })} trackId="pay:full" />
         </div>
         <div className="stack gap8">
           <SectionHeader title="Payment method" />
@@ -491,17 +491,16 @@ export function PaymentScreen() {
             <Icon name="wallet" size={20} /><span className="grow" style={{ fontWeight: 600 }}>Apple Pay</span><Icon name="chevron-down" size={20} />
           </TButton>
         </div>
-        <PromoLink />
         <div className="stack gap12">
           <SectionHeader title="Summary" />
           <div className="card stack gap12" style={{ padding: 16, borderRadius: 16 }}>
-            <div className="row" style={{ justifyContent: 'space-between' }}><span className="body16 muted">Court price</span><span className="label16">{eur(court.price)}</span></div>
-            <div className="row" style={{ justifyContent: 'space-between' }}><span className="body16 muted">You pay • {config.payMode === 'share' ? 'Your share' : 'Full court'}</span><span className="label16">{eur(youPay)}</span></div>
+            <div className="row" style={{ justifyContent: 'space-between' }}><span className="body16 muted">{config.payMode === 'share' ? 'Your share' : 'Whole court'}</span><span className="label16">{eur(youPay)}</span></div>
             <div className="row" style={{ justifyContent: 'space-between' }}><span className="body16 muted">Booking fee</span><span className="label16">€{BOOKING_FEE.toFixed(2)}</span></div>
             <div className="divider" />
-            <div className="row" style={{ justifyContent: 'space-between' }}><span className="h6">Total</span><span className="h6">€{total.toFixed(2)}</span></div>
+            <div className="row" style={{ justifyContent: 'space-between' }}><span className="h5">Total</span><span className="h5">€{total.toFixed(2)}</span></div>
           </div>
         </div>
+        <PromoLink />
       </div>
       <BottomBar>
         <Button size="lg" variant="black" trackId="pay:apple-pay" onClick={() => push('booked')}>Pay with Apple Pay</Button>

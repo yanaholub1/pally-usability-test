@@ -198,8 +198,8 @@ export function PromoLink() {
       <span style={{ background: '#fff', borderRadius: 24, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         {art ? <img src={art} width={54} height={56} alt="" style={{ objectFit: 'contain' }} /> : <span style={{ width: 54, height: 56, borderRadius: 16, background: 'var(--lime-soft)', flexShrink: 0 }} />}
         <span className="grow stack gap4" style={{ textAlign: 'left' }}>
-          <span className="h6">Subscribe to Pally+</span>
-          <span className="body16 muted">Forget about booking fees, get feedback on your game and more!</span>
+          <span className="h6">Skip booking fees with Pally+</span>
+          <span className="body16 muted">Plus feedback on your game and faster-filling matches.</span>
         </span>
         <Icon name="chevron-right" size={20} />
       </span>
