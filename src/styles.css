@@ -401,8 +401,10 @@ p { margin: 0; }
 .stats-card--strip > .summary-card__strip { margin: 0 -20px; width: auto; }
 .stats-card__items { display: flex; gap: 12px; }
 .stats-card__col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
+.stats-card__text { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
 .stats-card__label { font-weight: 500; font-size: 16px; line-height: 20px; color: var(--gray-700); }
 .stats-card__value { font-weight: 600; font-size: 16px; line-height: 24px; }
+.stats-card__col:first-child { align-items: flex-start; }
 .stats-card__col:nth-child(2) { align-items: center; }
 .stats-card__col:nth-child(3) { align-items: flex-end; }
 

@@ -283,8 +283,11 @@ export function StatsCard({ title, items, children, status, statusLabel }: { tit
       <div className="stats-card__items">
         {items.map(([label, value]) => (
           <div key={label} className="stats-card__col">
-            <span className="stats-card__label">{label}</span>
-            <span className="stats-card__value">{value}</span>
+            {/* kit StatItem: label and value centred on each other; the group sits start / centre / end */}
+            <span className="stats-card__text">
+              <span className="stats-card__label">{label}</span>
+              <span className="stats-card__value">{value}</span>
+            </span>
           </div>
         ))}
       </div>
