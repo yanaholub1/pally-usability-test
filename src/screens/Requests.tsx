@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import logoPrimary from '../assets/illustrations/logo-primary.svg'
 import { Icon } from '../components/Icon'
 import { EventCard, PlayersCard } from '../components/cards'
 import { Avatar, Badge, BallHero, Button, CardWithTray, InfoRow, SectionHeader, StatsCard, SummaryCard, TButton, Toast, useTimeout } from '../components/ui'
@@ -95,7 +96,7 @@ export function HomeMatchScreen() {
           onTouchStart={(e) => { touchY.current = e.touches[0].clientY }}
           onTouchMove={(e) => { if (touchY.current !== null && e.touches[0].clientY - touchY.current < -25) { touchY.current = null; hideBanner('swipe') } }}
         >
-          <span className="banner__icon"><Icon name="ball" size={22} /></span>
+          <img className="banner__icon" src={logoPrimary} alt="" />
           <span className="banner__text">
             <span className="banner__app"><span>Pally</span><span>now</span></span>
             <b style={{ fontWeight: 600 }}>{requesters.length} players want to join your match</b>
