@@ -199,8 +199,14 @@ function RequestCard({ r, matchFull, decided, onDecide, onProfile }: { r: Reques
   )
 }
 
+let requestBallsPlayed = false // the ball drop plays the first time the requests page opens (once per session)
 export function RequestsScreen() {
   const { config, back, decisions, decide, openProfile, milestone } = useApp()
+  const [dropBalls] = useState(() => {
+    const play = !requestBallsPlayed
+    requestBallsPlayed = true
+    return play
+  })
   const requesters = useRequesters()
   const court = courts.find((c) => c.id === config.courtId)!
   const [lo, hi] = levelRange(config, HOST.level)
@@ -228,13 +234,14 @@ export function RequestsScreen() {
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <BallHero onBack={back} />
+        <BallHero onBack={back} animateBalls={dropBalls} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 120px' }}>
-          <StatsCard title="Requests to join match" items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Price', `€${(court.price / 4).toFixed(2)}`]]}>
-            <p className="caption" style={{ textAlign: 'center', marginTop: -4, color: spotsLeft ? 'var(--brand-900)' : 'var(--coral-700)' }}>
-              {spotsLeft ? `${spotsLeft} of ${SPOTS} spots left` : 'Match full'}
-            </p>
-          </StatsCard>
+          <StatsCard
+            status={spotsLeft ? 'info' : 'joined'}
+            statusLabel={spotsLeft ? `${spotsLeft} ${spotsLeft === 1 ? 'place' : 'places'} left` : 'Match full'}
+            title="Requests to join match"
+            items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Price', `€${(court.price / 4).toFixed(2)}`]]}
+          />
           {requesters.map((r) => (
             <div key={r.id} className={`collapse ${decisions[r.id] ? 'gone' : ''}`}>
               <div aria-hidden={!!decisions[r.id]}>

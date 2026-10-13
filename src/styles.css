@@ -388,13 +388,16 @@ p { margin: 0; }
 .summary-card__strip { width: 100%; padding: 6px 0; text-align: center; font-weight: 500; font-size: 12px; line-height: 16px; text-transform: uppercase; }
 .summary-card__strip--action { background: #fee5dc; color: #6c2000; }
 .summary-card__strip--joined { background: var(--gray-100); color: var(--gray-700); }
-.summary-card__strip--info { background: #fff6cc; color: #5c4400; }
+.summary-card__strip--info { background: #fefbc4; color: #6a4b12; } /* status/warning (kit) */
 .summary-card__title { display: flex; flex-direction: column; gap: 4px; align-items: center; text-align: center; padding: 0 12px; }
 .summary-card__actions { display: flex; gap: 12px; padding: 0 12px; width: 100%; }
 .action-btn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; font-weight: 500; font-size: 16px; line-height: 20px; text-align: center; }
 .action-btn__circle { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--gray-300); background: #fff; display: grid; place-items: center; transition: background-color var(--motion-press); }
 .action-btn:active .action-btn__circle { background: var(--gray-100); }
 .stats-card { border: 1px solid var(--gray-300); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 20px; background: #fff; }
+/* StatsCard with a status strip on top (same strip as SummaryCard) */
+.stats-card--strip { padding-top: 0; overflow: hidden; }
+.stats-card--strip > .summary-card__strip { margin: 0 -20px; width: auto; }
 .stats-card__items { display: flex; gap: 12px; }
 .stats-card__col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
 .stats-card__label { font-weight: 500; font-size: 16px; line-height: 20px; color: var(--gray-700); }

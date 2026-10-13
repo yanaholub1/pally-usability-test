@@ -275,9 +275,10 @@ export function Toast({ tone, message, action, onAction, onClose, leaving, track
 }
 
 /** EventDetails/StatsCard — 2–3 facts, optional H2 title */
-export function StatsCard({ title, items, children }: { title?: string; items: [string, string][]; children?: ReactNode }) {
+export function StatsCard({ title, items, children, status, statusLabel }: { title?: string; items: [string, string][]; children?: ReactNode; status?: 'action' | 'joined' | 'info'; statusLabel?: string }) {
   return (
-    <div className="stats-card">
+    <div className={`stats-card ${status ? 'stats-card--strip' : ''}`}>
+      {status && <p className={`summary-card__strip summary-card__strip--${status}`}>{statusLabel}</p>}
       {title && <p className="h2" style={{ textAlign: 'center' }}>{title}</p>}
       <div className="stats-card__items">
         {items.map(([label, value]) => (
