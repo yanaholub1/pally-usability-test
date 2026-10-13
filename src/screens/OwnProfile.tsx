@@ -8,10 +8,10 @@ import { useApp } from '../state'
 
 /** The host's own profile (Figma: Own profile — About / Stats / Reputation). Figures are the design's. */
 const ME = {
-  status: 'New to Pally', following: 30, followers: 44,
+  status: 'Active player', // 37 matches with ratings, played recently following: 30, followers: 44,
   clubsVisited: 12, tournaments: 36, minutes: 900, playersMet: 24,
   languages: ['English', 'Spanish'], hand: 'Right', side: 'Right',
-  matches: 37, wins: 12, winRate: 55, levelTrend: '+0.4 over last 5 matches', confidence: 10,
+  matches: 37, wins: 12, levelTrend: '+0.4 over last 5 matches', confidence: 10,
   technique: [['Bandeja', 6.4], ['Vibora', 7.2], ['Smash', 4.4], ['Volley', 5.5], ['Wall shots', 8.0], ['Serve & return', 5.4]] as [string, number][],
   attendance: 96, arrivedOnTime: [27, 30], cancelledLate: [1, 32], sportsmanship: 88,
   feedback: [['Supportive', 2], ['Fair line calls', 4], ['Good attitude', 3], ['Fun to play with', 1], ['Great communication', 1]] as [string, number][],
@@ -162,7 +162,7 @@ export function OwnProfileOverlay({ returnScreen, onClose }: { returnScreen: str
                 <div className="row gap8">
                   <div className="metric"><span className="metric__label">Matches</span><span className="metric__value">{ME.matches}</span></div>
                   <div className="metric"><span className="metric__label">Wins</span><span className="metric__value">{ME.wins}</span></div>
-                  <div className="metric"><span className="metric__label">Win rate</span><span className="metric__value">{ME.winRate}%</span></div>
+                  <div className="metric"><span className="metric__label">Win rate</span><span className="metric__value">{Math.round((ME.wins / ME.matches) * 100)}%</span></div>
                 </div>
               </div>
               <div className="stack gap12">

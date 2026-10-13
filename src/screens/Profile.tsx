@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Icon } from '../components/Icon'
 import { asset } from '../components/assets'
 import { Avatar, Badge, Button, IconButton, ProgressRing, Segmented, SectionHeader, Smiley } from '../components/ui'
-import { attendanceBucket, sportsBucket, sportsMood, type Requester } from '../data'
+import { attendanceBucket, profileStatusLabel, sportsBucket, sportsMood, type Requester } from '../data'
 import { setCurrentScreen, track } from '../log'
 
 function Stat({ art, fallback, value, label }: { art: string; fallback: string; value: string; label: string }) {
@@ -66,7 +66,7 @@ export function ProfileOverlay({ r, returnScreen, onClose }: { r: Requester; ret
               <div className="stack gap4">
                 <div className="row gap8" style={{ alignItems: 'baseline' }}>
                   <p className="h2">{r.name}</p>
-                  <span className="caption">{r.status}</span>
+                  <span className="caption">{profileStatusLabel(r)}</span>
                 </div>
                 <p className="h6">{r.following} following &nbsp; {r.followers} followers</p>
               </div>

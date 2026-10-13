@@ -9,7 +9,12 @@ export type Requester = {
   photo: string // file name in /assets/avatars, swapped in once exported
   level: number
   levelEstimated: boolean
-  status: 'Active player' | 'New to Pally'
+  /** Status rules: New to Pally = fewer than 5 ratings (reputation and trait badges hidden);
+   *  Active player = 5+ ratings, played in the last 30 days;
+   *  Returning player = 5+ ratings, last match over 30 days ago (profiles say "Last played N months ago" instead). */
+  status: 'Active player' | 'New to Pally' | 'Returning player'
+  /** Returning players only: days since their last match */
+  lastPlayedDaysAgo?: number
   matches: number
   attendance: number | null // % or null = not enough data
   arrivedOnTime?: [number, number]
@@ -148,3 +153,15 @@ export function startTimesFor(dayIndex: number, now = new Date()): string[] {
 
 export const BOOKING_FEE = 0.79
 export const HOST = { name: 'Katerine', level: 3.2, photo: 'katerine' }
+
+/** Where the person is joining something now (join requests, player lists) */
+export function statusLabel(r: Pick<Requester, 'status'>) {
+  return r.status
+}
+/** On profiles, which people view at any time: a returning player's label shows how long ago they last played */
+export function profileStatusLabel(r: Pick<Requester, 'status' | 'lastPlayedDaysAgo'>) {
+  if (r.status !== 'Returning player') return r.status
+  const d = r.lastPlayedDaysAgo ?? 60
+  const months = Math.round(d / 30)
+  return d < 45 ? `Last played ${Math.round(d / 7)} weeks ago` : `Last played ${months} ${months === 1 ? 'month' : 'months'} ago`
+}
