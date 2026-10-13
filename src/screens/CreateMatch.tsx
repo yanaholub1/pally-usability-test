@@ -5,8 +5,8 @@ import { asset } from '../components/assets'
 import {
   Badge, BottomBar, Button, Chip, IconButton, InfoRow, NavBar, RadioCard, SectionHeader, Segmented, Sheet, StepHeader, TButton, TitleHeader, BallHero, StatsCard, SummaryCard,
 } from '../components/ui'
-import { BOOKING_FEE, HOST, clubs, courts, startTimes } from '../data'
-import { closestSlot, dayAt, endTime, fmt, genderLabel, isPastTime, levelRange, useApp } from '../state'
+import { BOOKING_FEE, HOST, clubs, courts, startTimesFor } from '../data'
+import { closestSlot, dayAt, endTime, fmt, genderLabel, levelRange, useApp } from '../state'
 import { track } from '../log'
 
 /**
@@ -130,7 +130,7 @@ export function BookCourtScreen() {
             </>}
           />
           {clubs.map((c) => (
-            <ClubCard key={c.id} name={c.name} address={c.address} photo={c.photo} trackId={`club-card:${c.id}`} onBook={() => { setConfig({ clubId: c.id, ...closestSlot(startTimes), courtId: null }); push('club') }} />
+            <ClubCard key={c.id} name={c.name} address={c.address} photo={c.photo} trackId={`club-card:${c.id}`} onBook={() => { setConfig({ clubId: c.id, ...closestSlot((d) => startTimesFor(d)), courtId: null }); push('club') }} />
           ))}
         </div>
       </div>
@@ -145,6 +145,7 @@ export function ClubScreen() {
   const club = clubs.find((c) => c.id === config.clubId)!
   const photo = asset('clubs', club.photo)
   const [tab, setTab] = useState('Courts')
+  const startTimes = startTimesFor(config.dayIndex)
   return (
     <div className="screen">
       <div className="screen__scroll">
@@ -171,7 +172,7 @@ export function ClubScreen() {
               {Array.from({ length: 7 }, (_, i) => {
                 const d = dayAt(i)
                 return (
-                  <TButton key={i} className={`day-chip ${i === 0 ? 'today' : ''} ${config.dayIndex === i ? 'on' : ''}`} trackId={`club:day:${i}`} onClick={() => setConfig(config.time && isPastTime(i, config.time) ? { dayIndex: i, time: null } : { dayIndex: i })}>
+                  <TButton key={i} className={`day-chip ${i === 0 ? 'today' : ''} ${config.dayIndex === i ? 'on' : ''}`} trackId={`club:day:${i}`} onClick={() => setConfig(config.time && !startTimesFor(i).includes(config.time) ? { dayIndex: i, time: null } : { dayIndex: i })}>
                     <span style={{ textTransform: 'uppercase' }}>{fmt.weekdayShort(d)}</span>
                     <b>{d.getDate()}</b>
                     <span>{fmt.monthShort(d)}</span>
@@ -192,7 +193,7 @@ export function ClubScreen() {
             <SectionHeader title="Start time" />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {startTimes.map((t) => (
-                <Chip key={t} selected={config.time === t} disabled={isPastTime(config.dayIndex, t)} trackId={`club:time:${t}`} onClick={() => setConfig({ time: t })}>{t}</Chip>
+                <Chip key={t} selected={config.time === t} trackId={`club:time:${t}`} onClick={() => setConfig({ time: t })}>{t}</Chip>
               ))}
             </div>
           </div>

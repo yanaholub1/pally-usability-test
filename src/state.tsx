@@ -98,16 +98,8 @@ export function levelRange(cfg: MatchConfig, hostLevel: number): [number, number
 
 export const genderLabel: Record<string, string> = { any: 'Any', women: 'Women', men: 'Men', mixed: 'Mixed' }
 
-/** Start times already gone for the given day (only today has any) */
-export function isPastTime(dayIndex: number, time: string) {
-  if (dayIndex !== 0) return false
-  const [h, m] = time.split(':').map(Number)
-  const now = new Date()
-  return h * 60 + m <= now.getHours() * 60 + now.getMinutes()
-}
-
 /** Club page preselection: today and the closest upcoming start time (tomorrow's first if today is over) */
-export function closestSlot(times: string[]): { dayIndex: number; time: string } {
-  const next = times.find((t) => !isPastTime(0, t))
-  return next ? { dayIndex: 0, time: next } : { dayIndex: 1, time: times[0] }
+export function closestSlot(timesFor: (dayIndex: number) => string[]): { dayIndex: number; time: string } {
+  const today = timesFor(0)
+  return today.length ? { dayIndex: 0, time: today[0] } : { dayIndex: 1, time: timesFor(1)[0] }
 }

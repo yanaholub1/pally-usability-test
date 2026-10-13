@@ -128,7 +128,23 @@ export const courts = [
   { id: 'c2', name: 'Court 2', details: 'Indoor | Crystal | Double', price: 20, short: 'Indoors' },
 ]
 
-export const startTimes = ['10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '18:30']
+/**
+ * Start times follow the clock, so participants see real, bookable times whenever they test.
+ * Clubs run 08:00–22:30 (last start); the grid never crosses midnight.
+ * - Today: every half hour from the next half hour to 22:30 (up to 12 times; fewer late in the evening).
+ * - Other days: 12 half-hour times in the same part of the day (starting 08:00–17:00).
+ */
+const FIRST_START = 8 * 60
+const LAST_START = 22 * 60 + 30
+const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+export function startTimesFor(dayIndex: number, now = new Date()): string[] {
+  const mins = now.getHours() * 60 + now.getMinutes()
+  const next = Math.max(Math.floor(mins / 30) * 30 + 30, FIRST_START)
+  const start = dayIndex === 0 ? next : Math.min(next, LAST_START - 11 * 30)
+  const out: string[] = []
+  for (let m = start; m <= LAST_START && out.length < 12; m += 30) out.push(hhmm(m))
+  return out
+}
 
 export const BOOKING_FEE = 0.79
 export const HOST = { name: 'Katerine', level: 3.2, photo: 'katerine' }
