@@ -183,7 +183,11 @@ p { margin: 0; }
 .rcard.on { border: 1.5px solid var(--gray-900); }
 .rcard__main { display: flex; align-items: center; gap: 12px; padding: 16px; width: 100%; min-height: 56px; }
 .rcard.on .rcard__main { background: var(--gray-100); }
-.rcard.on.has-details .rcard__main { border-bottom: 1.5px solid var(--gray-900); border-radius: 0 0 16px 16px; }
+/* Selected with details (kit RadioCard): the card keeps its full 1.5 px border and radius;
+   the white details panel is tucked 22 px under it (gap −22, panel padding-top 36) */
+.rcard.on.has-details { border: 0; background: transparent; overflow: visible; }
+.rcard.on.has-details .rcard__main { position: relative; z-index: 1; border: 1.5px solid var(--gray-900); border-radius: 16px; }
+.rcard.on.has-details .rcard__details { margin-top: -22px; padding: 36px 16px 16px; border: 1.5px solid var(--gray-900); border-top: 0; border-radius: 0 0 16px 16px; background: #fff; }
 .rcard__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .rcard__title { font-weight: 600; font-size: 16px; line-height: 24px; }
 .rcard__desc { font-size: 16px; line-height: 24px; color: var(--text-secondary); }
