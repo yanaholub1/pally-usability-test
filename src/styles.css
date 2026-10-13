@@ -235,8 +235,10 @@ p { margin: 0; }
 
 .segmented { display: flex; gap: 4px; padding: 4px; background: var(--gray-300); border-radius: 16px; width: 100%; }
 .segmented button { flex: 1; min-width: 0; padding: 8px; border-radius: 12px; text-align: center; font-weight: 500; font-size: 14px; line-height: 20px; text-transform: uppercase; color: var(--gray-700); transition: background-color .2s; }
+.segmented button.segmented__inactive { cursor: default; }
 .segmented button.on { background: #fff; font-weight: 600; color: var(--gray-900); }
 
+.chip[aria-disabled="true"] { color: var(--gray-400, #a1a1aa); border-color: var(--gray-200); background: var(--gray-50, #fafafa); cursor: default; }
 .bottom-bar { flex-shrink: 0; background: #fff; padding: 16px 20px 24px; position: relative; z-index: 3; }
 @media (max-width: 520px) { .bottom-bar { padding-bottom: max(24px, var(--safe-bottom)); } }
 

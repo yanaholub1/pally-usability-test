@@ -157,19 +157,20 @@ export function RadioCard({
   )
 }
 
-export function Chip({ selected, children, onClick, trackId, style }: { selected?: boolean; children: ReactNode; onClick?: () => void; trackId: string; style?: React.CSSProperties }) {
+export function Chip({ selected, disabled, children, onClick, trackId, style }: { selected?: boolean; disabled?: boolean; children: ReactNode; onClick?: () => void; trackId: string; style?: React.CSSProperties }) {
   return (
-    <TButton className={`chip ${selected ? 'on' : ''}`} aria-pressed={selected} trackId={trackId} onClick={onClick} style={style}>
+    <TButton className={`chip ${selected ? 'on' : ''}`} aria-pressed={selected} disabled={disabled} trackId={trackId} onClick={onClick} style={style}>
       {children}
     </TButton>
   )
 }
 
-export function Segmented({ items, value, onChange, trackPrefix }: { items: string[]; value: string; onChange: (v: string) => void; trackPrefix: string }) {
+/** `inactive` items look normal but do nothing (not built in the prototype); their taps are logged as tap_disabled */
+export function Segmented({ items, value, onChange, trackPrefix, inactive = [] }: { items: string[]; value: string; onChange: (v: string) => void; trackPrefix: string; inactive?: string[] }) {
   return (
     <div className="segmented" role="tablist">
       {items.map((it) => (
-        <TButton key={it} role="tab" aria-selected={it === value} className={it === value ? 'on' : ''} trackId={`${trackPrefix}:${it}`} onClick={() => onChange(it)}>
+        <TButton key={it} role="tab" aria-selected={it === value} className={`${it === value ? 'on' : ''} ${inactive.includes(it) ? 'segmented__inactive' : ''}`} disabled={inactive.includes(it)} trackId={`${trackPrefix}:${it}`} onClick={() => onChange(it)}>
           {it}
         </TButton>
       ))}
