@@ -349,7 +349,8 @@ p { margin: 0; }
 .range__sel { position: absolute; top: -1px; bottom: -1px; background: var(--gray-100); border-left: 3px solid var(--brand-500); border-right: 3px solid var(--brand-500); border-radius: 2px; }
 .range__sel::after { content: ''; position: absolute; left: 4px; right: 4px; top: 50%; border-top: 3px dotted var(--brand-500); }
 .range__handle { position: absolute; top: -6px; bottom: -6px; width: 28px; margin-left: -14px; z-index: 2; }
-.range__ball { position: absolute; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: var(--lime); display: grid; place-items: center; font-size: 12px; font-weight: 500; z-index: 1; }
+/* Kit ball (assets/Ball) with the host's level as live text */
+.range__ball { position: absolute; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; background: url('./assets/illustrations/level-ball.png') center / 100% 100% no-repeat; display: grid; place-items: center; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); z-index: 1; }
 .divider { height: 1px; background: var(--gray-200); width: 100%; }
 .stack { display: flex; flex-direction: column; }
 .row { display: flex; align-items: center; }
