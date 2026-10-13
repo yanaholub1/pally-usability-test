@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import logoPrimary from '../assets/illustrations/logo-primary.svg'
 import { Icon } from '../components/Icon'
 import { EventCard, PlayersCard } from '../components/cards'
-import { Avatar, Badge, BallHero, Button, CardWithTray, InfoRow, SectionHeader, StatsCard, SummaryCard, TButton, Toast, useTimeout } from '../components/ui'
+import { Avatar, Badge, BallHero, Button, CardWithTray, IconButton, InfoRow, SectionHeader, StatsCard, SummaryCard, TButton, Toast, useTimeout } from '../components/ui'
 import { HomeScaffold } from './Home'
 import { MoreInfo } from './CreateMatch'
 import { HOST, attendanceBucket, clubs, courts, requestersFor, sportsBucket, type Requester } from '../data'
@@ -142,7 +143,7 @@ export function MatchDetailsScreen() {
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 40px' }}>
           {requestsArrived && pending.length > 0 ? (
             <CardWithTray emphasis="brand" action="See requests" trackId="details:see-requests" onAction={() => push('requests')}>
-              <SummaryCard status="action" statusLabel={`${pending.length} players requested to join`} title="Open match" subtitle="Visible on “Find”" actions={summaryActions} />
+              <SummaryCard status="info" statusLabel={`${pending.length} ${pending.length === 1 ? 'player' : 'players'} requested to join`} title="Open match" subtitle="Visible on “Find”" actions={summaryActions} />
             </CardWithTray>
           ) : (
             <SummaryCard status="joined" statusLabel="You’re in this match" title="Open match" subtitle="Visible on “Find”" actions={summaryActions} />
@@ -199,6 +200,86 @@ function RequestCard({ r, matchFull, decided, onDecide, onProfile }: { r: Reques
   )
 }
 
+
+/* ───────── Requests summary that collapses into a pinned header (Figma: "Requests — many, scrolled") ─────────
+   In the page it is the full StatsCard (strip, title, labels + values). Once the card reaches the spot under the
+   title bar, a pinned copy takes over at exactly the same place and shrinks as you keep scrolling: the title and
+   labels fade out and their space closes 1:1 with the scroll, so nothing below jumps. The title bar and white panel
+   fade in over the same distance. */
+type Strip = { tone: 'info' | 'full'; label: string }
+const EXP = { pad: 20, title: 36, titleGap: 20, label: 20, labelGap: 2 }
+const COL = { pad: 12 }
+const COLLAPSE_DISTANCE = (EXP.pad - COL.pad) * 2 + EXP.title + EXP.titleGap + EXP.label + EXP.labelGap // 94 px of scroll
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+
+function SummaryBody({ strip, items, p }: { strip: Strip; items: [string, string][]; p: number }) {
+  const fade = Math.max(0, 1 - p * 3) // text fades out in the first third, before its space closes
+  const pad = lerp(EXP.pad, COL.pad, p)
+  return (
+    <div className="req-summary">
+      <p className={`summary-card__strip req-summary__strip--${strip.tone}`}>{strip.label}</p>
+      <div style={{ padding: `${pad}px 20px` }}>
+        <p className="h2" style={{ textAlign: 'center', height: lerp(EXP.title, 0, p), marginBottom: lerp(EXP.titleGap, 0, p), opacity: fade, overflow: 'hidden', whiteSpace: 'nowrap' }}>Requests to join match</p>
+        <div className="stats-card__items">
+          {items.map(([label, value]) => (
+            <div key={label} className="stats-card__col">
+              <span className="stats-card__text" style={{ gap: lerp(EXP.labelGap, 0, p) }}>
+                <span className="stats-card__label" style={{ height: lerp(EXP.label, 0, p), opacity: fade, overflow: 'hidden' }}>{label}</span>
+                <span className="stats-card__value">{value}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CollapsingSummary({ strip, items, onBack }: { strip: Strip; items: [string, string][]; onBack: () => void }) {
+  const inflow = useRef<HTMLDivElement>(null)
+  const pinSlot = useRef<HTMLDivElement>(null)
+  const [p, setP] = useState(-1) // -1 = not pinned
+  const [host, setHost] = useState<HTMLElement | null>(null) // the pinned copy renders into the screen, outside the scroller
+  useEffect(() => { setHost(inflow.current?.closest('.screen') as HTMLElement | null) }, [])
+  useEffect(() => {
+    const el = inflow.current
+    const scroller = el?.closest('.screen__scroll') as HTMLElement | null
+    const screen = el?.closest('.screen') as HTMLElement | null
+    if (!el || !scroller || !screen) return
+    let last = -2
+    const check = () => {
+      const pinTop = pinSlot.current?.offsetTop ?? 0 // where the pinned card sits (under the title bar)
+      const top = el.getBoundingClientRect().top - screen.getBoundingClientRect().top
+      const next = top > pinTop ? -1 : Math.min(1, (pinTop - top) / COLLAPSE_DISTANCE)
+      if (Math.abs(next - last) > 0.001) { last = next; setP(next) }
+    }
+    check()
+    scroller.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    return () => { scroller.removeEventListener('scroll', check); window.removeEventListener('resize', check) }
+  }, [host])
+  const pinned = p >= 0
+  const pp = Math.max(0, p)
+  useEffect(() => { if (p >= 1) track('requests_header_collapsed', 'requests') }, [p >= 1]) // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <>
+      <div ref={inflow} style={{ visibility: pinned ? 'hidden' : 'visible' }}><SummaryBody strip={strip} items={items} p={0} /></div>
+      {host && createPortal(
+        <div className={`req-pin ${pinned ? 'req-pin--on' : ''} ${pp > 0.5 ? 'req-pin--dark-status' : ''}`} aria-hidden={!pinned}>
+          <div className="req-pin__bg" style={{ opacity: pp, boxShadow: `0 4px 12px rgba(0,0,0,${0.06 * pp})` }} />
+          <div className="hdr__row req-pin__bar" style={{ opacity: pp, pointerEvents: pp > 0.5 ? 'auto' : 'none' }}>
+            <IconButton icon="chevron-left" label="Back" onClick={onBack} trackId="requests:pinned:back" />
+            <p className="h5 req-pin__title">Requests to join</p>
+            <IconButton icon="share" label="Share" trackId="requests:pinned:share" />
+          </div>
+          <div ref={pinSlot} className="req-pin__card">{pinned && <SummaryBody strip={strip} items={items} p={pp} />}</div>
+        </div>,
+        host,
+      )}
+    </>
+  )
+}
+
 let requestBallsPlayed = false // the ball drop plays the first time the requests page opens (once per session)
 export function RequestsScreen() {
   const { config, back, decisions, decide, openProfile, milestone } = useApp()
@@ -208,7 +289,6 @@ export function RequestsScreen() {
     return play
   })
   const requesters = useRequesters()
-  const court = courts.find((c) => c.id === config.courtId)!
   const [lo, hi] = levelRange(config, HOST.level)
   const admittedCount = Object.values(decisions).filter((d) => d === 'admitted').length
   const spotsLeft = SPOTS - admittedCount
@@ -236,11 +316,10 @@ export function RequestsScreen() {
       <div className="screen__scroll">
         <BallHero onBack={back} animateBalls={dropBalls} />
         <div className="sheet-body stack gap20" style={{ padding: '24px 20px 120px' }}>
-          <StatsCard
-            status={spotsLeft ? 'info' : 'joined'}
-            statusLabel={spotsLeft ? `${spotsLeft} ${spotsLeft === 1 ? 'place' : 'places'} left` : 'Match full'}
-            title="Requests to join match"
-            items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Price', `€${(court.price / 4).toFixed(2)}`]]}
+          <CollapsingSummary
+            onBack={back}
+            strip={spotsLeft ? { tone: 'info', label: `${spotsLeft} ${spotsLeft === 1 ? 'spot' : 'spots'} left` } : { tone: 'full', label: 'Match full' }}
+            items={[['Gender', genderLabel[config.gender ?? 'any']], ['Level', `${lo.toFixed(1)} – ${hi.toFixed(1)}`], ['Type', config.type === 'competitive' ? 'Competitive' : 'Casual']]}
           />
           {requesters.map((r) => (
             <div key={r.id} className={`collapse ${decisions[r.id] ? 'gone' : ''}`}>

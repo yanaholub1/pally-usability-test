@@ -446,3 +446,16 @@ p { margin: 0; }
 .feedback-card { border: 1px solid var(--gray-300); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #fff; }
 .feedback-tag { display: inline-flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--gray-300); border-radius: 12px; background: var(--gray-100); font-weight: 500; font-size: 16px; line-height: 20px; }
 .feedback-tag__n { font-size: 14px; }
+
+/* Requests: summary card + pinned collapsing header */
+.req-summary { border: 1px solid var(--gray-300); border-radius: 24px; background: #fff; overflow: hidden; }
+.req-summary .summary-card__strip { margin: 0; }
+.req-summary__strip--info { background: #fefbc4; color: #6a4b12; }
+.req-summary__strip--full { background: #dfffc0; color: #123700; }
+.req-pin { position: absolute; left: 0; right: 0; top: 0; z-index: 4; visibility: hidden; pointer-events: none; }
+.req-pin--on { visibility: visible; }
+.req-pin__bg { position: absolute; inset: 0; background: #fff; }
+.req-pin__bar { position: relative; margin-top: var(--safe-top); margin-bottom: 8px; }
+.req-pin__title { flex: 1; text-align: center; }
+.req-pin__card { position: relative; padding: 0 20px 12px; pointer-events: auto; }
+.device:has(.req-pin--dark-status) .statusbar--light { color: var(--gray-900); }
