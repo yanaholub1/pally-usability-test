@@ -305,8 +305,8 @@ function RangeSlider({ value, onChange }: { value: [number, number]; onChange: (
           <span key={cx} className={`range__dot ${cx > lo + 2 && cx < hi - 2 ? 'range__dot--in' : ''}`} style={{ left: cx - 2 }} />
         ))}
         <div className="range__sel" style={{ left: lo - 2, width: hi - lo + 4 }} />
-        <span className="range__bar" style={{ left: lo - 2 }} />
-        <span className="range__bar" style={{ left: hi - 2 }} />
+        <span className="range__bar range__bar--start" style={{ left: lo - 2 }} />
+        <span className="range__bar range__bar--end" style={{ left: hi - 2 }} />
         <div className="range__ball" style={{ left: x(HOST.level) }}>{HOST.level.toFixed(2)}</div>
         {dragging !== null && <span className="range__bubble" style={{ left: dragging === 0 ? lo : hi }}>{value[dragging].toFixed(2)}</span>}
         <div className="range__handle" style={{ left: lo }} onPointerDown={startDrag(0)} role="slider" aria-label="Minimum level" aria-valuemin={0} aria-valuemax={7} aria-valuenow={value[0]} />

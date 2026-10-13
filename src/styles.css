@@ -349,6 +349,8 @@ p { margin: 0; }
 .range__dot--in { background: var(--brand-500); z-index: 1; }
 .range__sel { position: absolute; top: -1px; bottom: -1px; background: var(--gray-100); border-radius: 4px; }
 .range__bar { position: absolute; top: -1px; bottom: -1px; width: 4px; background: var(--brand-500); z-index: 1; }
+.range__bar--start { border-radius: 4px 0 0 4px; }
+.range__bar--end { border-radius: 0 4px 4px 0; }
 .range__handle { position: absolute; top: -8px; bottom: -8px; width: 32px; margin-left: -16px; z-index: 3; cursor: ew-resize; }
 .range__bubble { position: absolute; top: -31px; transform: translateX(-50%); background: var(--gray-900); color: #fff; border-radius: 8px; padding: 4px 8px; font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; z-index: 4; pointer-events: none; }
 .range__scale { color: var(--gray-700); }
