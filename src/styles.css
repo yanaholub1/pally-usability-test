@@ -266,6 +266,8 @@ p { margin: 0; }
 .event-frame--blue { background: #d5ebff; }
 .event-frame--grey { background: var(--gray-100); }
 .event-frame__strip { height: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; overflow: hidden; }
+.event-tap { display: block; cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 28px; transition: transform var(--motion-press) ease; }
+.event-tap:active:not(:has(button:active)) { transform: scale(.985); }
 .event-card { background: #fff; border-radius: 24px; padding: 12px; display: flex; flex-direction: column; gap: 16px; }
 .event-card--bordered { border: 1px solid var(--gray-300); }
 .event-card__tags { display: flex; flex-wrap: wrap; gap: 8px; }

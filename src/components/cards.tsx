@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Icon } from './Icon'
 import { asset } from './assets'
 import { Avatar, Badge, Button, IconButton, TButton } from './ui'
+import { track } from '../log'
 
 export type LineupSlot = { name?: string; photo?: string; level?: string; badgeIcon?: string; available?: boolean; you?: boolean }
 
@@ -29,7 +30,7 @@ export function EventCard({
           <Badge key={t.label} icon={t.icon} variant={t.accent ? 'accent' : undefined}>{t.label}</Badge>
         ))}
       </div>
-      <TButton trackId={`${trackId}:open`} onClick={onOpen} style={{ display: 'block', width: '100%' }}>
+      <div>
         <div className="stack gap8" style={{ marginBottom: 16 }}>
           <p className="h5">{title}</p>
           {date && <span className="row gap4"><Icon name="calendar" size={18} /><span className="label16">{date}</span></span>}
@@ -50,7 +51,7 @@ export function EventCard({
             ))}
           </div>
         )}
-      </TButton>
+      </div>
       <div className="event-card__footer">
         <span className="row gap4 grow">
           <Icon name="location-pin" size={18} />
@@ -61,12 +62,19 @@ export function EventCard({
       </div>
     </div>
   )
-  if (!header) return card
+  // The whole card opens the event; taps on its own buttons (map, Join, See requests…) don't.
+  const open = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return
+    track('tap', `${trackId}:open`, onOpen ? undefined : { note: 'no details page in prototype' })
+    onOpen?.()
+  }
+  const tappable = { 'data-track': `${trackId}:open`, role: 'link', tabIndex: 0, onClick: open, className: 'event-tap' }
+  if (!header) return <div {...tappable}>{card}</div>
   return (
-    <div className={`event-frame ${header.tone === 'blue' ? 'event-frame--blue' : header.tone === 'lime' ? '' : 'event-frame--grey'}`} style={header.tone === 'lime' ? { background: 'var(--lime-soft)' } : undefined}>
+    <div {...tappable}><div className={`event-frame ${header.tone === 'blue' ? 'event-frame--blue' : header.tone === 'lime' ? '' : 'event-frame--grey'}`} style={header.tone === 'lime' ? { background: 'var(--lime-soft)' } : undefined}>
       <div className="event-frame__strip">{header.content}</div>
       {card}
-    </div>
+    </div></div>
   )
 }
 
