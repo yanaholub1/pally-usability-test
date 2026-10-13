@@ -112,7 +112,7 @@ export function ClubCard({ name, address, photo, onBook, trackId }: { name: stri
           <span className="row gap4"><Icon name="location-pin" size={18} /><span className="label14 ellipsis">{address}</span></span>
         </div>
         <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
-        <Button variant="secondary" icon="field" trackId={`${trackId}:book`} onClick={onBook}>Book</Button>
+        <Button variant="secondary" icon="calendar" trackId={`${trackId}:see-times`} onClick={onBook}>See times</Button>
       </div>
     </div>
   )
