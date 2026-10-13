@@ -376,6 +376,7 @@ p { margin: 0; }
 .collapse.gone { grid-template-rows: 0fr; margin-top: -20px; }
 .profile-hdr { color: #fff; padding: var(--safe-top) 0 48px; margin-bottom: -24px; flex-shrink: 0; position: relative; }
 .profile-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.profile-stat__label { font-size: 13px; line-height: 16px; font-weight: 500; text-align: center; }
 .profile-stat__art { width: 64px; height: 68px; display: grid; place-items: center; }
 .profile-stat__art img { width: 62px; height: 68px; object-fit: contain; }
 

@@ -11,7 +11,7 @@ function Stat({ art, fallback, value, label }: { art: string; fallback: string; 
     <div className="profile-stat">
       <span className="profile-stat__art">{src ? <img src={src} alt="" /> : <Icon name={fallback} size={44} strokeWidth={1.2} />}</span>
       <span className="h5">{value}</span>
-      <span style={{ fontSize: 12, lineHeight: '16px' }}>{label}</span>
+      <span className="profile-stat__label">{label}</span>
     </div>
   )
 }
