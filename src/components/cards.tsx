@@ -31,9 +31,14 @@ export function EventCard({
         ))}
       </div>
       <div>
+        {/* Kit Title block: title, (lessons) date, then location "Club • Court" — pin 18 + Label 14 Medium, truncates */}
         <div className="stack gap8" style={{ marginBottom: 16 }}>
           <p className="h5">{title}</p>
           {date && <span className="row gap4"><Icon name="calendar" size={18} /><span className="label16">{date}</span></span>}
+          <span className="row gap4" style={{ minWidth: 0 }}>
+            <Icon name="location-pin" size={18} />
+            <span className="label14 ellipsis grow">{location}</span>
+          </span>
         </div>
         {layout === 'lead' ? (
           <LeadLineup slots={lineup} />
@@ -52,13 +57,10 @@ export function EventCard({
           </div>
         )}
       </div>
+      {/* Kit footer: just the actions — Map (icon) + the main action, which fills the rest of the row */}
       <div className="event-card__footer">
-        <span className="row gap4 grow">
-          <Icon name="location-pin" size={18} />
-          <span className="label16 ellipsis">{location}</span>
-        </span>
         <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
-        {action}
+        <div className="event-card__action">{action}</div>
       </div>
     </div>
   )

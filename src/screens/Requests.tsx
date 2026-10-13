@@ -73,7 +73,7 @@ export function HomeMatchScreen() {
         tags={[{ icon: 'ball', label: 'Match' }, ...(config.gender && config.gender !== 'any' ? [{ icon: 'venus', label: genderLabel[config.gender] }] : []), { icon: 'racket', label: config.type === 'competitive' ? 'Competitive' : 'Casual' }]}
         title={`${fmt.long(d)} • ${config.time}`}
         lineup={lineup}
-        location={club.name}
+        location={`${club.name} • ${courts.find((c) => c.id === config.courtId)?.name ?? 'Court 1'}`}
         action={
           requestsArrived && pending.length ? (
             <Button icon="incoming" trackId="home:see-requests" onClick={() => push('requests')}>See requests</Button>

@@ -277,7 +277,9 @@ p { margin: 0; }
 .event-card { background: #fff; border-radius: 24px; padding: 12px; display: flex; flex-direction: column; gap: 16px; }
 .event-card--bordered { border: 1px solid var(--gray-300); }
 .event-card__tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.event-card__footer { display: flex; align-items: center; gap: 12px; }
+.event-card__footer { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+.event-card__action { flex: 1; min-width: 0; display: flex; }
+.event-card__action > .btn { flex: 1; width: 100%; }
 .lineup-full { display: flex; flex-direction: column; gap: 12px; }
 .lineup-full__team { display: flex; }
 .lineup-full__team > * { flex: 1; min-width: 0; }
