@@ -472,7 +472,7 @@ export function PaymentScreen() {
   const youPay = config.payMode === 'share' ? share : court.price
   const total = youPay + BOOKING_FEE
   const d = dayAt(config.dayIndex)
-  const eur = (n: number) => `€${n % 1 === 0 ? n : n.toFixed(2)}`
+  const eur = (n: number) => `€${n.toFixed(2)}`
   return (
     <div className="screen">
       <TitleHeader title="Payment" onBack={back} />
