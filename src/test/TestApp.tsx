@@ -170,9 +170,22 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
           <div className="row" style={{ justifyContent: 'space-between' }}><span className="body14 muted">{q.low}</span><span className="body14 muted">{q.high}</span></div>
         </div>
       )}
+      {q.kind === 'open' && q.visual === 'badges' && <RequestBadges />}
       {q.kind === 'open' && q.visual === 'scores' && <ScoreCards />}
       {q.kind === 'open' && <OpenAnswer key={q.id} q={q} onChange={setValue} />}
     </Page>
+  )
+}
+
+/** The labels exactly as they appear on join-request cards (no captions), asked before the full score cards */
+function RequestBadges() {
+  return (
+    <div className="test-badges" aria-label="Labels from join requests">
+      <Badge icon="badge">Highly reliable</Badge>
+      <Badge icon="badge">Sometimes cancels late</Badge>
+      <Badge icon="handshake">Great teammate</Badge>
+      <Badge icon="handshake">Mixed feedback</Badge>
+    </div>
   )
 }
 
