@@ -390,8 +390,12 @@ p { margin: 0; }
 .stats-card__col:nth-child(2) { align-items: center; }
 .stats-card__col:nth-child(3) { align-items: flex-end; }
 
-/* Find: filter chips pinned while the results scroll */
-/* pins just below the status bar; a white band covers the status-bar area once stuck */
-.filter-bar { position: sticky; top: var(--safe-top); z-index: 3; display: flex; gap: 8px; overflow: hidden; margin: -8px -20px 0; padding: 8px 20px; background: #fff; transition: box-shadow .15s ease; }
-.filter-bar--stuck { box-shadow: 0 1px 0 var(--gray-200); overflow: visible; }
-.filter-bar--stuck::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: var(--safe-top); background: #fff; }
+/* Find: chip row runs to the right screen edge and scrolls sideways */
+.chip-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-right: -20px; padding-right: 20px; }
+.chip-row::-webkit-scrollbar { display: none; }
+.chip-row > .chip { flex-shrink: 0; }
+/* Figma "Pinned search" (Find activities — scrolled): white panel over the list once the chips reach the top */
+.pinned-search { position: absolute; left: 0; right: 0; top: 0; z-index: 4; background: #fff; padding: calc(var(--safe-top) + 6px) 0 12px 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.06); visibility: hidden; opacity: 0; transform: translateY(-8px); transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+.pinned-search--on { visibility: visible; opacity: 1; transform: none; transition: opacity .18s ease, transform .18s ease; }
+.pinned-search .chip-row { margin-right: 0; }
+.search-summary { display: flex; align-items: center; gap: 8px; height: 48px; margin-right: 20px; padding: 0 12px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; font-weight: 500; font-size: 16px; line-height: 20px; color: var(--gray-900); text-align: left; min-width: 0; }

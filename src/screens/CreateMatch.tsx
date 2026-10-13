@@ -9,24 +9,46 @@ import { BOOKING_FEE, HOST, clubs, courts, startTimes } from '../data'
 import { dayAt, endTime, fmt, genderLabel, levelRange, useApp } from '../state'
 import { track } from '../log'
 
-/** Filter chips row that stays pinned to the top of the list while scrolling.
- *  A hairline appears under it only once it is stuck. */
-function FilterBar({ children }: { children: ReactNode }) {
-  const bar = useRef<HTMLDivElement>(null)
-  const [stuck, setStuck] = useState(false)
+/**
+ * Find search block. In the page: the two-row search field and the filter chips.
+ * Once the chips scroll up to where they'd sit in the pinned panel, a white "Pinned search" panel
+ * (Figma: Find activities — scrolled) takes over at the top: one-line search summary + the same chips.
+ */
+function FindSearch({ what, whatIcon, summary, chips, onWhat, trackPrefix }: {
+  what: string; whatIcon: string; summary: string; chips: ReactNode; onWhat?: () => void; trackPrefix: string
+}) {
+  const inflow = useRef<HTMLDivElement>(null)
+  const pinnedChips = useRef<HTMLDivElement>(null)
+  const [pinned, setPinned] = useState(false)
   useEffect(() => {
-    const el = bar.current
-    const scroller = el?.closest('.screen__scroll') as HTMLElement | null
-    if (!el || !scroller) return
+    const row = inflow.current
+    const scroller = row?.closest('.screen__scroll') as HTMLElement | null
+    const screen = row?.closest('.screen') as HTMLElement | null
+    if (!row || !scroller || !screen) return
     const check = () => {
-      const pinAt = parseFloat(getComputedStyle(el).top) || 0
-      setStuck(el.getBoundingClientRect().top - scroller.getBoundingClientRect().top <= pinAt + 0.5)
+      const target = pinnedChips.current?.offsetTop ?? 0
+      setPinned(row.getBoundingClientRect().top - screen.getBoundingClientRect().top <= target)
     }
     check()
     scroller.addEventListener('scroll', check, { passive: true })
     return () => scroller.removeEventListener('scroll', check)
   }, [])
-  return <div ref={bar} className={`filter-bar ${stuck ? 'filter-bar--stuck' : ''}`}>{children}</div>
+  useEffect(() => { if (pinned) track('search_pinned', trackPrefix) }, [pinned, trackPrefix])
+  return (
+    <>
+      <div className="field-group">
+        <TButton className="field-group__row" style={{ width: '100%' }} trackId={`${trackPrefix}:what`} onClick={onWhat}><Icon name={whatIcon} /> {what}</TButton>
+        <TButton className="field-group__row" style={{ width: '100%' }} trackId={`${trackPrefix}:where`}><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
+      </div>
+      <div ref={inflow} className="chip-row">{chips}</div>
+      <div className={`pinned-search ${pinned ? 'pinned-search--on' : ''}`} aria-hidden={!pinned} inert={!pinned}>
+        <TButton className="search-summary" trackId={`${trackPrefix}:summary`} onClick={onWhat}>
+          <Icon name="magnifying-glass" /> <span className="ellipsis">{summary}</span>
+        </TButton>
+        <div ref={pinnedChips} className="chip-row">{chips}</div>
+      </div>
+    </>
+  )
 }
 
 /* ───────────── Find activities (search tab) ───────────── */
@@ -39,24 +61,38 @@ export function FindScreen() {
       <div className="screen__scroll">
         <TitleHeader title="Find activities" />
         <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
-          <div className="field-group">
-            <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:what" onClick={() => setSheet(true)}><Icon name="search" /> {choice === 'Court' ? 'Courts' : choice}</TButton>
-            <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:where"><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
-          </div>
-          <FilterBar>
-            <Chip trackId="find:filters"><Icon name="filter" size={20} /></Chip>
-            <Chip trackId="find:day"><Icon name="calendar" size={20} /> Any day &amp; time</Chip>
-            <Chip trackId="find:type"><Icon name="racket" size={20} /> Any match type</Chip>
-          </FilterBar>
+          <FindSearch
+            trackPrefix="find"
+            what={choice === 'Court' ? 'Courts' : choice}
+            whatIcon="search"
+            summary={`${choice === 'Court' ? 'Courts' : choice} · Sant Martí · 5 km`}
+            onWhat={() => setSheet(true)}
+            chips={<>
+              <Chip trackId="find:filters"><Icon name="filter" size={20} /></Chip>
+              <Chip trackId="find:day"><Icon name="calendar" size={20} /> Any day &amp; time</Chip>
+              <Chip trackId="find:type"><Icon name="racket" size={20} /> Any match type</Chip>
+            </>}
+          />
           <EventCard
             trackId="find:result1"
             header={{ tone: 'lime', content: <span className="label14 row gap8"><Icon name="badge" size={16} /> Great fit based on your profile</span> }}
             tags={[{ icon: 'venus', label: 'Women' }, { icon: 'racket', label: 'Competitive' }, { icon: 'level', label: '3.0 – 3.4' }]}
-            title="Monday, July 15 • 18:30"
+            title={`${fmt.long(dayAt(3))} • 18:30`}
             lineup={[{ name: 'Alice', photo: 'alice', level: '3.1' }, { name: 'Iris', photo: 'iris', level: '3.1' }, { name: 'Kate', level: '3.1' }, { available: true }]}
             location="Padel 7"
-            action={<Button variant="secondary" icon="plus" trackId="find:result1:join">Join</Button>}
+            action={<Button icon="plus" trackId="find:result1:join">Join</Button>}
           />
+          {[{ id: 2, day: 3, time: '18:30' }, { id: 3, day: 4, time: '19:00' }].map((r) => (
+            <EventCard
+              key={r.id}
+              trackId={`find:result${r.id}`}
+              tags={[{ icon: 'mixed-genders', label: 'Any' }, { icon: 'handshake', label: 'Casual' }, { icon: 'level', label: '2.9 – 3.3' }]}
+              title={`${fmt.long(dayAt(r.day))} • ${r.time}`}
+              lineup={[{ name: 'David', level: '3.1' }, { available: true }, { available: true }, { name: 'Elis', level: '3.0' }]}
+              location="Padel 7"
+              action={<Button icon="plus" trackId={`find:result${r.id}:join`}>Join</Button>}
+            />
+          ))}
         </div>
       </div>
       <NavBar active="find" />
@@ -82,15 +118,17 @@ export function BookCourtScreen() {
       <div className="screen__scroll">
         <TitleHeader title="Find courts" />
         <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
-          <div className="field-group">
-            <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:what"><Icon name="field" /> Courts</TButton>
-            <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:where"><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
-          </div>
-          <FilterBar>
-            <Chip trackId="book:filters"><Icon name="filter" size={20} /></Chip>
-            <Chip trackId="book:day"><Icon name="calendar" size={20} /> Any day &amp; time</Chip>
-            <Chip trackId="book:duration"><Icon name="clock" size={20} /> Any duration</Chip>
-          </FilterBar>
+          <FindSearch
+            trackPrefix="book"
+            what="Courts"
+            whatIcon="field"
+            summary="Courts · Sant Martí · 5 km"
+            chips={<>
+              <Chip trackId="book:filters"><Icon name="filter" size={20} /></Chip>
+              <Chip trackId="book:day"><Icon name="calendar" size={20} /> Any day &amp; time</Chip>
+              <Chip trackId="book:duration"><Icon name="clock" size={20} /> Any duration</Chip>
+            </>}
+          />
           {clubs.map((c) => (
             <ClubCard key={c.id} name={c.name} address={c.address} photo={c.photo} trackId={`club-card:${c.id}`} onBook={() => { setConfig({ clubId: c.id, time: null }); push('club') }} />
           ))}
