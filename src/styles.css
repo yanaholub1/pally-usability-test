@@ -389,3 +389,7 @@ p { margin: 0; }
 .stats-card__value { font-weight: 600; font-size: 16px; line-height: 24px; }
 .stats-card__col:nth-child(2) { align-items: center; }
 .stats-card__col:nth-child(3) { align-items: flex-end; }
+
+/* Find: filter chips pinned while the results scroll */
+.filter-bar { position: sticky; top: -8px; z-index: 3; display: flex; gap: 8px; overflow: hidden; margin: -8px -20px 0; padding: 8px 20px; background: #fff; transition: box-shadow .15s ease; }
+.filter-bar--stuck { box-shadow: 0 1px 0 var(--gray-200); }

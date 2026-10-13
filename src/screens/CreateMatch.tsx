@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '../components/Icon'
 import { ClubCard, EventCard, PromoLink } from '../components/cards'
 import { asset } from '../components/assets'
@@ -8,6 +8,27 @@ import {
 import { BOOKING_FEE, HOST, clubs, courts, startTimes } from '../data'
 import { dayAt, endTime, fmt, genderLabel, levelRange, useApp } from '../state'
 import { track } from '../log'
+
+/** Filter chips row that stays pinned to the top of the list while scrolling.
+ *  A hairline appears under it only once it is stuck. */
+function FilterBar({ children }: { children: ReactNode }) {
+  const sentinel = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+  useEffect(() => {
+    const el = sentinel.current
+    if (!el) return
+    const root = el.closest('.screen__scroll')
+    const io = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting), { root, threshold: 0 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return (
+    <>
+      <div ref={sentinel} aria-hidden style={{ height: 1, marginBottom: -17 }} />
+      <div className={`filter-bar ${stuck ? 'filter-bar--stuck' : ''}`}>{children}</div>
+    </>
+  )
+}
 
 /* ───────────── Find activities (search tab) ───────────── */
 export function FindScreen() {
@@ -23,11 +44,11 @@ export function FindScreen() {
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:what" onClick={() => setSheet(true)}><Icon name="search" /> {choice === 'Court' ? 'Courts' : choice}</TButton>
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:where"><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
           </div>
-          <div className="row gap8" style={{ overflow: 'hidden' }}>
+          <FilterBar>
             <Chip trackId="find:filters"><Icon name="filter" size={20} /></Chip>
             <Chip trackId="find:day"><Icon name="calendar" size={20} /> Any day &amp; time</Chip>
             <Chip trackId="find:type"><Icon name="racket" size={20} /> Any match type</Chip>
-          </div>
+          </FilterBar>
           <EventCard
             trackId="find:result1"
             header={{ tone: 'lime', content: <span className="label14 row gap8"><Icon name="badge" size={16} /> Great fit based on your profile</span> }}
@@ -66,11 +87,11 @@ export function BookCourtScreen() {
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:what"><Icon name="field" /> Courts</TButton>
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:where"><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
           </div>
-          <div className="row gap8" style={{ overflow: 'hidden' }}>
+          <FilterBar>
             <Chip trackId="book:filters"><Icon name="filter" size={20} /></Chip>
             <Chip trackId="book:day"><Icon name="calendar" size={20} /> Any day &amp; time</Chip>
             <Chip trackId="book:duration"><Icon name="clock" size={20} /> Any duration</Chip>
-          </div>
+          </FilterBar>
           {clubs.map((c) => (
             <ClubCard key={c.id} name={c.name} address={c.address} photo={c.photo} trackId={`club-card:${c.id}`} onBook={() => { setConfig({ clubId: c.id, time: null }); push('club') }} />
           ))}
