@@ -8,6 +8,7 @@ import {
 import { BOOKING_FEE, HOST, clubs, courts, startTimesFor } from '../data'
 import { closestSlot, dayAt, endTime, fmt, genderLabel, levelRange, useApp } from '../state'
 import { track } from '../log'
+import applePayMark from '../assets/illustrations/apple-pay-mark.svg'
 
 /**
  * Find search block. In the page: the two-row search field and the filter chips.
@@ -503,7 +504,9 @@ export function PaymentScreen() {
         <PromoLink />
       </div>
       <BottomBar>
-        <Button size="lg" variant="black" trackId="pay:apple-pay" onClick={() => push('booked')}>Pay with Apple Pay</Button>
+        <Button size="lg" variant="black" trackId="pay:apple-pay" ariaLabel="Pay with Apple Pay" onClick={() => push('booked')}>
+          <span className="apple-pay"><span>Pay with</span><img src={applePayMark} alt="" width={55} height={22} /></span>
+        </Button>
         <p className="body14 muted" style={{ textAlign: 'center', marginTop: 8 }}>This is a prototype: no real payment is made.</p>
       </BottomBar>
     </div>
