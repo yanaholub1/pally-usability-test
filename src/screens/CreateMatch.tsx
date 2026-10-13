@@ -12,22 +12,21 @@ import { track } from '../log'
 /** Filter chips row that stays pinned to the top of the list while scrolling.
  *  A hairline appears under it only once it is stuck. */
 function FilterBar({ children }: { children: ReactNode }) {
-  const sentinel = useRef<HTMLDivElement>(null)
+  const bar = useRef<HTMLDivElement>(null)
   const [stuck, setStuck] = useState(false)
   useEffect(() => {
-    const el = sentinel.current
-    if (!el) return
-    const root = el.closest('.screen__scroll')
-    const io = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting), { root, threshold: 0 })
-    io.observe(el)
-    return () => io.disconnect()
+    const el = bar.current
+    const scroller = el?.closest('.screen__scroll') as HTMLElement | null
+    if (!el || !scroller) return
+    const check = () => {
+      const pinAt = parseFloat(getComputedStyle(el).top) || 0
+      setStuck(el.getBoundingClientRect().top - scroller.getBoundingClientRect().top <= pinAt + 0.5)
+    }
+    check()
+    scroller.addEventListener('scroll', check, { passive: true })
+    return () => scroller.removeEventListener('scroll', check)
   }, [])
-  return (
-    <>
-      <div ref={sentinel} aria-hidden style={{ height: 1, marginBottom: -17 }} />
-      <div className={`filter-bar ${stuck ? 'filter-bar--stuck' : ''}`}>{children}</div>
-    </>
-  )
+  return <div ref={bar} className={`filter-bar ${stuck ? 'filter-bar--stuck' : ''}`}>{children}</div>
 }
 
 /* ───────────── Find activities (search tab) ───────────── */
@@ -37,9 +36,9 @@ export function FindScreen() {
   const [choice, setChoice] = useState<'Matches' | 'Lessons' | 'Court' | 'Tournaments'>('Matches')
   return (
     <div className="screen">
-      <TitleHeader title="Find activities" onBack={back} />
-      <div className="screen__scroll" style={{ padding: '8px 20px 120px' }}>
-        <div className="stack gap16">
+      <div className="screen__scroll">
+        <TitleHeader title="Find activities" onBack={back} />
+        <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
           <div className="field-group">
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:what" onClick={() => setSheet(true)}><Icon name="search" /> {choice === 'Court' ? 'Courts' : choice}</TButton>
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="find:where"><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
@@ -80,9 +79,9 @@ export function BookCourtScreen() {
   const { push, back, setConfig } = useApp()
   return (
     <div className="screen">
-      <TitleHeader title="Find courts" onBack={back} />
-      <div className="screen__scroll" style={{ padding: '8px 20px 120px' }}>
-        <div className="stack gap16">
+      <div className="screen__scroll">
+        <TitleHeader title="Find courts" onBack={back} />
+        <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
           <div className="field-group">
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:what"><Icon name="field" /> Courts</TButton>
             <TButton className="field-group__row" style={{ width: '100%' }} trackId="book:where"><Icon name="location-pin" /> Sant Martí • 5 km</TButton>
