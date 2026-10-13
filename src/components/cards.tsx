@@ -97,7 +97,18 @@ function LeadLineup({ slots }: { slots: LineupSlot[] }) {
 export function ClubCard({ name, address, photo, onBook, trackId }: { name: string; address: string; photo: string; onBook: () => void; trackId: string }) {
   const src = asset('clubs', photo)
   return (
-    <div className="club-card" style={src ? { backgroundImage: `url(${src})` } : { backgroundImage: 'linear-gradient(160deg,#5b7fb8 0%,#1f4fa3 45%,#123a7a 100%)' }}>
+    <div
+      className="club-card event-tap"
+      role="link"
+      tabIndex={0}
+      data-track={`${trackId}:open`}
+      onClick={(e) => {
+        // Whole card opens the club's times; its own buttons (save, map, See times) keep their actions
+        if ((e.target as HTMLElement).closest('button')) return
+        track('tap', `${trackId}:open`)
+        onBook()
+      }}
+      style={src ? { backgroundImage: `url(${src})` } : { backgroundImage: 'linear-gradient(160deg,#5b7fb8 0%,#1f4fa3 45%,#123a7a 100%)' }}>
       <div className="club-card__scrim" />
       <div className="row gap12" style={{ position: 'relative' }}>
         <div className="row gap8 grow">
