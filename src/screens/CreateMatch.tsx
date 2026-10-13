@@ -54,12 +54,12 @@ export function FindScreen() {
   )
 }
 
-/* ───────────── Book a court ───────────── */
+/* ───────────── Find courts ───────────── */
 export function BookCourtScreen() {
   const { push, back, setConfig } = useApp()
   return (
     <div className="screen">
-      <TitleHeader title="Book a court" onBack={back} />
+      <TitleHeader title="Find courts" onBack={back} />
       <div className="screen__scroll" style={{ padding: '8px 20px 120px' }}>
         <div className="stack gap16">
           <div className="field-group">
