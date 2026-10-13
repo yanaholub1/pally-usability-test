@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Prototype from '../App'
 import { Icon } from '../components/Icon'
-import { Button, TButton } from '../components/ui'
+import { Badge, Button, ProgressRing, Smiley, TButton } from '../components/ui'
 import { setCurrentScreen, track } from '../log'
 import { defaultConfig, type MatchConfig } from '../state'
 import { ABOUT_YOU, BETWEEN, FINAL, TASK_1, TASK_2, type Question } from './content'
@@ -170,8 +170,43 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
           <div className="row" style={{ justifyContent: 'space-between' }}><span className="body14 muted">{q.low}</span><span className="body14 muted">{q.high}</span></div>
         </div>
       )}
+      {q.kind === 'open' && q.visual === 'scores' && <ScoreCards />}
       {q.kind === 'open' && <OpenAnswer key={q.id} q={q} onChange={setValue} />}
     </Page>
+  )
+}
+
+/** The Reputation cards exactly as on a player's profile (Figma: ScoreCard), so people know which scores we mean */
+function ScoreCards() {
+  return (
+    <div className="stack gap16" aria-label="Attendance and Sportsmanship scores">
+      <div className="stack gap8">
+        <p className="h6">Attendance</p>
+        <div className="score-card">
+          <div className="grow stack gap16">
+            <div className="stack gap4">
+              <span className="score-card__value">92%</span>
+              <span className="score-card__caption">Matches attended on time</span>
+            </div>
+            <div><Badge icon="badge" variant="media">Highly reliable</Badge></div>
+          </div>
+          <ProgressRing value={92} />
+        </div>
+      </div>
+      <div className="stack gap8">
+        <p className="h6">Sportsmanship</p>
+        <div className="score-card">
+          <div className="grow stack gap16">
+            <div className="stack gap4">
+              <span className="score-card__value">90%</span>
+              <span className="score-card__caption">Players would play with them again</span>
+            </div>
+            <div><Badge icon="handshake" variant="media">Great teammate</Badge></div>
+          </div>
+          <Smiley mood="happy" />
+        </div>
+      </div>
+    </div>
   )
 }
 
