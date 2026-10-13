@@ -36,9 +36,11 @@ type Props = {
   start?: ScreenId
   initialConfig?: Partial<MatchConfig>
   onMilestone?: (name: string) => void
+  /** The test wrapper keeps the participant's match settings so Task 2 shows their own match */
+  onConfig?: (config: MatchConfig) => void
 }
 
-export default function Prototype({ start = 'home', initialConfig, onMilestone }: Props) {
+export default function Prototype({ start = 'home', initialConfig, onMilestone, onConfig }: Props) {
   const [stack, setStack] = useState<ScreenId[]>([start])
   const [dir, setDir] = useState<'push' | 'pop' | 'fade'>('fade')
   const [nonce, setNonce] = useState(0)
@@ -51,6 +53,7 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone }
   const homeScreen = useRef<ScreenId>(['homeMatch', 'matchDetails', 'requests'].includes(start) ? 'homeMatch' : 'home')
 
   const current = stack[stack.length - 1]
+  useEffect(() => { onConfig?.(config) }, [config]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setCurrentScreen(current)

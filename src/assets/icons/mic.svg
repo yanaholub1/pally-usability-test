@@ -1,0 +1,6 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Drawn to match the kit's 1.5 px outline icons (no mic in the kit) -->
+<rect x="8.75" y="2.75" width="6.5" height="11.5" rx="3.25" stroke="#18181B" stroke-width="1.5"/>
+<path d="M5.25 11C5.25 14.7279 8.27208 17.75 12 17.75C15.7279 17.75 18.75 14.7279 18.75 11" stroke="#18181B" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M12 17.75V21.25M8.75 21.25H15.25" stroke="#18181B" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

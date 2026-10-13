@@ -459,3 +459,63 @@ p { margin: 0; }
 .req-pin__title { flex: 1; text-align: center; }
 .req-pin__card { position: relative; padding: 0 20px 12px; pointer-events: auto; }
 .device:has(.req-pin--dark-status) .statusbar--light { color: var(--gray-900); }
+
+/* ───────────────────────── Usability test wrapper ───────────────────────── */
+.test-page { display: flex; flex-direction: column; }
+.test-page__scroll { flex: 1; overflow-y: auto; padding: calc(var(--safe-top) + 24px) 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.test-page__footer { border-top: 1px solid var(--gray-100); }
+.test-progress { position: absolute; top: var(--safe-top); left: 20px; right: 20px; height: 4px; border-radius: 4px; background: var(--gray-100); overflow: hidden; z-index: 2; }
+.test-progress i { display: block; height: 100%; background: var(--brand-500); border-radius: 4px; transition: width .4s ease; }
+.test-title { margin: 4px 0 0; }
+.body18 { font-size: 18px; line-height: 27px; font-weight: 500; }
+.test-task-text { padding: 16px; border-radius: 16px; background: var(--brand-50, #edf6ff); }
+.test-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.test-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 24px; }
+.test-list li > :first-child { margin-top: 2px; flex-shrink: 0; color: var(--brand-500); }
+.test-option { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 14px 16px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; font-size: 16px; line-height: 22px; font-weight: 500; text-align: left; }
+.test-option.on { border: 1.5px solid var(--gray-900); background: var(--gray-100); }
+.check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--gray-300); background: #fff; flex-shrink: 0; display: grid; place-items: center; color: #fff; }
+.check.on { background: var(--gray-900); border-color: var(--gray-900); }
+.answer-toggle { display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: var(--gray-300); }
+.answer-toggle button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 12px; font-weight: 500; font-size: 15px; color: var(--gray-700); }
+.answer-toggle button.on { background: #fff; color: var(--gray-900); font-weight: 600; }
+.answer-toggle button[aria-disabled="true"] { opacity: .45; cursor: default; }
+.answer-text, .answer-input { width: 100%; border: 1px solid var(--gray-300); border-radius: 16px; padding: 14px 16px; font: inherit; font-size: 16px; line-height: 24px; resize: vertical; background: #fff; color: var(--gray-900); }
+.answer-text:focus, .answer-input:focus { outline: none; border: 1.5px solid var(--gray-900); }
+.voice-answer { border: 1px dashed var(--gray-300); border-radius: 16px; padding: 20px; display: flex; justify-content: center; }
+.voice-btn { display: flex; flex-direction: column; align-items: center; gap: 10px; font-weight: 500; font-size: 15px; color: var(--gray-700); }
+.voice-btn > :first-child { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-500); color: #fff; }
+.voice-btn .icon, .voice-btn svg { color: #fff; }
+.voice-btn--rec .voice-btn__stop { width: 72px; height: 72px; border-radius: 50%; background: #e5484d; position: relative; animation: rec-pulse 1.4s ease-in-out infinite; }
+.voice-btn--rec .voice-btn__stop::after { content: ''; position: absolute; inset: 26px; border-radius: 4px; background: #fff; }
+@keyframes rec-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77,.35); } 50% { box-shadow: 0 0 0 10px rgba(229,72,77,0); } }
+.voice-audio { width: 100%; }
+.scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.scale__n { height: 56px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; font-weight: 600; font-size: 18px; text-align: center; }
+.scale__n.on { border: 1.5px solid var(--gray-900); background: var(--gray-100); }
+
+/* Task view: a slim test bar above the prototype */
+.task-shell { min-height: 100%; display: flex; flex-direction: column; align-items: center; }
+.task-bar { width: 402px; max-width: 100%; margin: 24px auto 0; background: #fff; border-radius: 20px; padding: 8px 10px; box-shadow: 0 2px 12px rgba(0,0,0,.08); position: relative; z-index: 10; }
+.task-bar__row { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.task-bar__task { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 4px; text-align: left; }
+.task-bar__task .caption { grid-column: 1; font-size: 11px; line-height: 14px; }
+.task-bar__task .label14 { grid-column: 1; }
+.task-bar__task > :last-child { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+.task-bar__text { padding: 4px 4px 6px; color: var(--gray-800, #27272a); }
+.task-bar__skip { font-size: 14px; white-space: nowrap; }
+.task-bar__confirm { display: flex; flex-direction: column; gap: 10px; padding: 8px 4px 4px; }
+.rec-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: #fdecec; color: #b42318; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.rec-pill__dot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; animation: rec-blink 1.2s ease-in-out infinite; }
+.rec-pill--paused { background: var(--gray-100); color: var(--gray-700); }
+.rec-pill--paused .rec-pill__dot { background: var(--gray-500, #71717a); animation: none; }
+.rec-pill--off { background: var(--gray-100); color: var(--gray-600, #52525b); }
+@keyframes rec-blink { 50% { opacity: .35; } }
+.task-stage { min-height: 0; padding-top: 16px; }
+@media (max-width: 520px), (max-height: 760px) and (pointer: coarse) {
+  .task-shell { height: 100dvh; display: flex; flex-direction: column; }
+  .task-bar { width: 100%; margin: 0; border-radius: 0; padding: calc(env(safe-area-inset-top) + 6px) 12px 6px; box-shadow: 0 1px 0 var(--gray-200); }
+  .task-stage { flex: 1; padding: 0; height: auto; min-height: 0; width: 100%; }
+  .task-stage .device { height: 100%; }
+  html.in-task { --safe-top: 8px; }
+}
