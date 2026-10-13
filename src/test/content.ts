@@ -33,8 +33,8 @@ export const TASK_2 = {
 
 export const FINAL: Question[] = [
   { id: 'final_why_chose', kind: 'open', title: 'Why did you choose these players?' },
-  { id: 'final_scores_meaning', kind: 'open', title: 'What do you think the Attendance and Sportsmanship scores mean?', hint: 'In your own words. There’s no right answer.' },
   { id: 'final_profile_helpful', kind: 'open', title: 'When you checked their profiles, what information was helpful?' },
+  { id: 'final_scores_meaning', kind: 'open', title: 'On players’ profiles and requests, what do you think the Attendance score and the Sportsmanship score mean?', hint: 'For example “Attendance 92%” or “Sportsmanship 40%”. In your own words, there’s no right answer.' },
   { id: 'final_profile_not_helpful', kind: 'open', title: 'Was anything on the profiles not helpful, or missing?', optional: true },
   { id: 'final_confidence', kind: 'scale', title: 'How confident do you feel about who you’ll be playing with?', low: 'Not at all', high: 'Very' },
   { id: 'final_anything_else', kind: 'open', title: 'Anything else you’d change?', optional: true },
