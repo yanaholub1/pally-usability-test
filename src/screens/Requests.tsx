@@ -111,7 +111,8 @@ export function HomeMatchScreen() {
 }
 
 /* ───────────── Match details (host view) ───────────── */
-let ballsHavePlayed = false // the ball drop plays once per session, the first time Match details opens
+// Task 2 plays the header ball drop once: on whichever of Match details / Requests opens first
+let task2BallsPlayed = false
 
 export function MatchDetailsScreen() {
   const { config, push, back, requestsArrived, decisions, openProfile } = useApp()
@@ -127,8 +128,8 @@ export function MatchDetailsScreen() {
     ...admitted.map((r) => ({ name: r.name, photo: r.photo, level: r.level.toFixed(1), you: false, id: r.id, onTap: () => openProfile(r.id) })),
   ]
   const [dropBalls] = useState(() => {
-    const play = !ballsHavePlayed
-    ballsHavePlayed = true
+    const play = !task2BallsPlayed
+    task2BallsPlayed = true
     return play
   })
   const summaryActions = [
@@ -280,12 +281,11 @@ function CollapsingSummary({ strip, items, onBack }: { strip: Strip; items: [str
   )
 }
 
-let requestBallsPlayed = false // the ball drop plays the first time the requests page opens (once per session)
 export function RequestsScreen() {
   const { config, back, decisions, decide, openProfile, milestone } = useApp()
   const [dropBalls] = useState(() => {
-    const play = !requestBallsPlayed
-    requestBallsPlayed = true
+    const play = !task2BallsPlayed
+    task2BallsPlayed = true
     return play
   })
   const requesters = useRequesters()
