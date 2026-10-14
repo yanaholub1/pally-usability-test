@@ -338,6 +338,15 @@ const SCREEN_NAMES: Record<string, string> = {
   matchType: 'Match type', gender: 'Gender', approval: 'Approval', review: 'Review', payment: 'Payment', booked: 'Court booked',
   matchDetails: 'Match details', requests: 'Join requests',
 }
+const CONFIG_LABELS: Record<string, string> = { clubId: 'Club', dayIndex: 'Day', duration: 'Duration', time: 'Start time', courtId: 'Court', visibility: 'Visibility', type: 'Match type', casualRange: 'Level range', gender: 'Gender', hostGender: 'Their gender', approval: 'Approval', payMode: 'Payment' }
+function describeConfig(data: Record<string, unknown> | null): ReactNode {
+  if (!data) return null
+  const parts = Object.entries(data).filter(([, v]) => v != null).map(([k, v]) => {
+    const val = Array.isArray(v) ? v.join('–') : k === 'dayIndex' ? (v === 0 ? 'today' : v === 1 ? 'tomorrow' : `in ${v} days`) : k === 'duration' ? `${v} min` : String(v)
+    return `${CONFIG_LABELS[k] ?? k}: ${val}`
+  })
+  return parts.length ? <>Set {parts.join(', ')}</> : null
+}
 const screenName = (s: string | null) => (s ? SCREEN_NAMES[s] ?? s : '')
 
 function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'task2'; title: string; summary?: ReactNode }) {
@@ -397,6 +406,13 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
         case 'recording_paused': if (e.target === seg) out.push({ ...base, kind: 'mic', text: <>Mic paused</> }); break
         case 'recording_resumed': if (e.target === seg) out.push({ ...base, kind: 'mic', text: <>Mic back on</> }); break
         case 'task_end': out.push({ ...base, kind: 'end', text: <>Task ended: {String(e.data?.how)}</> }); break
+        case 'config_change': {
+          const txt = describeConfig(e.data)
+          if (!txt) break
+          if (last?.kind === 'config' && last.e.target === e.target && e.t_ms - last.e.t_ms < 1500) { last.text = txt; last.e = e; last.t = e.t_ms; last.audio = base.audio }
+          else out.push({ ...base, kind: 'config', text: txt })
+          break
+        }
         case 'sheet_open': out.push({ ...base, kind: 'tap', text: <>Opened sheet {e.target}</> }); break
         case 'notification_shown': out.push({ ...base, kind: 'screen', text: <>Notification shown</> }); break
         default: break
@@ -412,26 +428,48 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [activeIdx])
 
-  // Replay: the screen they were on at this moment, the profile on top if open, and their last tap
+  // Replay: their state at this moment (screen, settings so far, decisions, open profile) and their last tap
   const replay = useMemo(() => {
     const cut = activeIdx >= 0 ? items[activeIdx].t : items[0]?.t ?? 0
     let screen = seg === 'task1' ? 'home' : 'homeMatch'
     let profile: string | null = null
+    let profileName: string | null = null
     let tap: Ev | null = null
+    const config: Record<string, unknown> = seg === 'task2' ? { time: '18:30', gender: 'any' } : {}
+    const decided: Record<string, 'admitted' | 'declined'> = {}
     for (const e of d.events) {
-      if (span.start == null || e.t_ms < span.start || e.t_ms > cut) continue
+      if (e.t_ms > cut) break
+      // Settings carry over from task 1 into task 2, so collect them from the start of the session
+      if (e.type === 'config_change' && e.data) Object.assign(config, e.data)
+      if (span.start == null || e.t_ms < span.start) continue
       if (e.type === 'screen_view' && e.screen && ROUTABLE.has(e.screen)) { screen = e.screen; profile = null; tap = null }
-      if (e.type === 'profile_open') profile = String(e.data?.name ?? e.target)
+      if (e.type === 'profile_open' && e.target !== 'me') { profile = e.target; profileName = String(e.data?.name ?? e.target) }
       if (e.type === 'profile_close') profile = null
+      if (e.type === 'request_admitted' && e.target) decided[e.target] = 'admitted'
+      if (e.type === 'request_declined' && e.target) decided[e.target] = 'declined'
+      if (e.type === 'request_undo' && e.target) delete decided[e.target]
       if ((e.type === 'tap' || e.type === 'tap_dead') && e.data && typeof e.data.x === 'number') tap = e
     }
     const freshTap = tap && cut - tap.t_ms < 1500 ? tap : null
-    return { screen, profile, tap: freshTap }
+    return { state: { screen, config, decisions: decided, profile }, screen, profile: profile ? profileName : null, tap: freshTap }
   }, [activeIdx, items, d, seg, span.start])
+
+  // Drive the replay frame (it keeps running; we just tell it what to show)
+  const frameRef = useRef<HTMLIFrameElement>(null)
+  const [frameReady, setFrameReady] = useState(false)
+  useEffect(() => {
+    const on = (e: MessageEvent) => { if (e.source === frameRef.current?.contentWindow && e.data?.type === 'pally-replay-ready') setFrameReady(true) }
+    window.addEventListener('message', on)
+    return () => window.removeEventListener('message', on)
+  }, [])
+  const stateKey = JSON.stringify(replay.state)
+  useEffect(() => {
+    if (frameReady) frameRef.current?.contentWindow?.postMessage({ type: 'pally-replay', state: replay.state }, location.origin)
+  }, [frameReady, stateKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const seek = (it: Item) => {
     const a = audioRef.current
-    if (a && hasAudio) { a.currentTime = Math.max(0, it.audio - 0.5); void a.play() }
+    if (a && hasAudio) { a.currentTime = Math.max(0, it.audio + 0.01); void a.play() }
     setNow(it.audio)
   }
 
@@ -461,14 +499,13 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
         </div>
         <div className="rs-replay">
           <div className="rs-phone" style={{ width: 390 * scale, height: 760 * scale }}>
-            <iframe title="Screen replay" src={`/?screen=${replay.screen}`} style={{ width: 390, height: 760, transform: `scale(${scale})` }} tabIndex={-1} />
-            {replay.profile && <div className="rs-phone__overlay">Viewing {replay.profile}’s profile</div>}
+            <iframe ref={frameRef} title="Screen replay" src="/?replay" style={{ width: 390, height: 760, transform: `scale(${scale})` }} tabIndex={-1} />
             {tapData && !replay.profile && (
               <span key={replay.tap!.t_ms} className={`rs-dot ${replay.tap!.type === 'tap_dead' ? 'rs-dot--dead' : ''}`}
                 style={{ left: tapData.x * (390 / tapData.w) * scale, top: tapData.y * (390 / tapData.w) * scale }} />
             )}
           </div>
-          <p className="rs-muted rs-small">{screenName(replay.screen)}. The screen as designed, not their exact state (their selections aren’t replayed). Red dot = tap on nothing.</p>
+          <p className="rs-muted rs-small">{screenName(replay.screen)}{replay.profile ? ` · ${replay.profile}’s profile` : ''}. Shows their selections, decisions and open profile at this moment (not scroll position or open sheets). Red dot = tap on nothing.</p>
         </div>
       </div>
     </section>

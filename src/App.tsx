@@ -38,9 +38,12 @@ type Props = {
   onMilestone?: (name: string) => void
   /** The test wrapper keeps the participant's match settings so Task 2 shows their own match */
   onConfig?: (config: MatchConfig) => void
+  /** Results page replay: show this exact state (screen, settings, decisions, open profile). Nothing is logged. */
+  replay?: ReplayState
 }
+export type ReplayState = { screen: ScreenId; config: Partial<MatchConfig>; decisions: Record<string, Decision>; profile: string | null }
 
-export default function Prototype({ start = 'home', initialConfig, onMilestone, onConfig }: Props) {
+export default function Prototype({ start = 'home', initialConfig, onMilestone, onConfig, replay }: Props) {
   const [stack, setStack] = useState<ScreenId[]>([start])
   const [dir, setDir] = useState<'push' | 'pop' | 'fade'>('fade')
   const [nonce, setNonce] = useState(0)
@@ -53,6 +56,38 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone, 
   const homeScreen = useRef<ScreenId>(['homeMatch', 'matchDetails', 'requests'].includes(start) ? 'homeMatch' : 'home')
 
   const current = stack[stack.length - 1]
+
+  // Replay mode: jump straight to the participant's state at that moment
+  useEffect(() => {
+    if (!replay) return
+    setConfigState({ ...defaultConfig, ...replay.config })
+    setDecisions(replay.decisions)
+    setProfile(replay.profile)
+    if (['homeMatch', 'matchDetails', 'requests'].includes(replay.screen)) { setRequestsArrived(true); homeScreen.current = 'homeMatch' }
+    setStack((st) => (st.length === 1 && st[0] === replay.screen ? st : [replay.screen]))
+    setDir('fade')
+  }, [replay])
+
+  // Settings changes are logged once at the start and once at the end of a burst (e.g. a slider drag),
+  // not on every frame
+  const configLog = useRef<{ keys: string; last: Record<string, unknown> | null; timer: ReturnType<typeof setTimeout> } | null>(null)
+  const logConfig = (patch: Record<string, unknown>) => {
+    const keys = Object.keys(patch).join(',')
+    const cur = configLog.current
+    if (cur && cur.keys === keys) {
+      clearTimeout(cur.timer)
+      cur.last = patch
+    } else {
+      if (cur) { clearTimeout(cur.timer); if (cur.last) track('config_change', cur.keys, cur.last) }
+      track('config_change', keys, patch)
+      configLog.current = { keys, last: null, timer: 0 as unknown as ReturnType<typeof setTimeout> }
+    }
+    const entry = configLog.current!
+    entry.timer = setTimeout(() => {
+      if (entry.last) track('config_change', entry.keys, entry.last)
+      if (configLog.current === entry) configLog.current = null
+    }, 400)
+  }
   useEffect(() => { onConfig?.(config) }, [config]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -65,7 +100,7 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone, 
       config,
       setConfig: (patch) => {
         setConfigState((c) => ({ ...c, ...patch }))
-        track('config_change', Object.keys(patch).join(','), patch as Record<string, unknown>)
+        logConfig(patch as Record<string, unknown>)
       },
       push: (id) => { setDir('push'); setStack((s) => [...s, id]); setNonce((n) => n + 1) },
       back: () => {

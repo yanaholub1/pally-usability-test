@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy } from 'react'
+import { StrictMode, Suspense, lazy, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource/maven-pro/400.css'
 import '@fontsource/maven-pro/500.css'
@@ -6,7 +6,7 @@ import '@fontsource/maven-pro/600.css'
 import '@fontsource/inter/600.css'
 import './styles.css'
 import { applyMotionVariables } from './motion'
-import Prototype from './App'
+import Prototype, { type ReplayState } from './App'
 import TestApp from './test/TestApp'
 import type { ScreenId } from './state'
 
@@ -22,9 +22,24 @@ const review = params.has('screen') || params.has('prototype')
 const start = (params.get('screen') as ScreenId | null) ?? 'home'
 const jumpedPastBooking = !['home', 'find', 'bookCourt', 'club'].includes(start)
 
+/** ?replay: the results page drives this frame with postMessage to show a participant's state */
+function ReplayHost() {
+  const [state, setState] = useState<ReplayState | null>(null)
+  useEffect(() => {
+    const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === 'pally-replay') setState(e.data.state) }
+    window.addEventListener('message', on)
+    window.parent?.postMessage({ type: 'pally-replay-ready' }, location.origin)
+    return () => window.removeEventListener('message', on)
+  }, [])
+  if (!state) return null
+  return <div className="stage"><Prototype start={state.screen} initialConfig={state.config} replay={state} /></div>
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {params.has('results') ? (
+    {params.has('replay') ? (
+      <ReplayHost />
+    ) : params.has('results') ? (
       <Suspense fallback={null}><ResultsApp /></Suspense>
     ) : review ? (
       <div className="stage">

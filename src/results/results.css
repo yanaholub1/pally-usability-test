@@ -73,3 +73,4 @@ html.results-root, html.results-root body { height: auto; background: #f4f4f5; }
 .rs-dot { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: rgba(7,75,223,.35); box-shadow: 0 0 0 2px var(--brand-500); animation: rs-dot .9s ease-out both; pointer-events: none; }
 .rs-dot--dead { background: rgba(189,39,5,.3); box-shadow: 0 0 0 2px #bd2705; }
 @keyframes rs-dot { from { transform: scale(.4); opacity: 0; } 30% { opacity: 1; } to { transform: scale(1); } }
+.rs-ev--config .rs-ev__x { color: var(--gray-700); }
