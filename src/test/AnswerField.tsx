@@ -16,7 +16,7 @@ import { Take, hasMic, micLevel, micSupported, requestMic, wakeMeter } from './r
 
 export type Answer = { mode: 'text'; text: string } | { mode: 'voice'; segment: string; duration_ms: number } | { mode: 'skipped' }
 
-const MAX_MS = 120_000
+const MAX_MS = 420_000 // 7 min: ~2–7 MB of audio, under the 10 MB storage limit per file
 const LIVE_BARS = 44
 const DONE_BARS = 34
 const takeCounts: Record<string, number> = {}
@@ -75,7 +75,7 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
   const micBlocked = notice === 'denied' || notice === 'blocked'
   const showRecord = canRecord && !micBlocked
 
-  // Live timer + waveform while recording; auto-stop at 2:00
+  // Live timer + waveform while recording; auto-stop at the limit (7:00)
   useEffect(() => {
     if (mode !== 'recording') return
     const id = setInterval(() => {
@@ -265,7 +265,7 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
         <div className="answer-field answer-field--rec">
           <div className="row" style={{ justifyContent: 'space-between', height: 20 }}>
             <span className="rec-status"><span className="rec-status__dot" aria-hidden />Recording</span>
-            <span className="rec-timer">{mmss(elapsed)} / 2:00</span>
+            <span className="rec-timer">{mmss(elapsed)} / {mmss(MAX_MS)}</span>
           </div>
           <div className="wave wave--live" aria-hidden>
             {live.map((v, i) => <i key={i} style={{ height: Math.round(4 + v * 36) }} />)}
