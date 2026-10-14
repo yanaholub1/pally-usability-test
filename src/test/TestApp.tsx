@@ -8,6 +8,9 @@ import { ABOUT_YOU, BETWEEN, FINAL, TASK_1, TASK_2, type Question } from './cont
 import { Segment, hasMic, micSupported, requestMic } from './recorder'
 import { saveAnswer, startSession } from './session'
 
+/** Promised on the consent screen: audio is deleted this many days after the session (transcripts are kept) */
+const AUDIO_KEPT_DAYS = 14
+
 type Step = 'welcome' | 'consent' | 'about' | 'thinkaloud' | 'task1-intro' | 'task1' | 'between' | 'task2-intro' | 'task2' | 'final' | 'thanks'
 const mode = ((): 'unmoderated' | 'moderated' | 'pilot' => {
   const m = new URLSearchParams(location.search).get('mode')
@@ -268,9 +271,9 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
         <div className="task-bar__row">
           {recording !== 'off' ? (
             <TButton className={`rec-pill ${recording === 'paused' ? 'rec-pill--paused' : ''}`} trackId={`taskbar:${recording === 'on' ? 'pause' : 'resume'}`} onClick={togglePause} aria-label={recording === 'on' ? 'Pause recording' : 'Resume recording'}>
-              <span className="rec-pill__dot" />{recording === 'on' ? 'Rec' : 'Paused'}
+              <Icon name="mic" size={16} />{recording === 'on' ? 'On' : 'Paused'}
             </TButton>
-          ) : <span className="rec-pill rec-pill--off">No mic</span>}
+          ) : null}
           <TButton className="task-bar__task" trackId="taskbar:instructions" onClick={() => setOpen(!open)} aria-expanded={open}>
             <span className="caption muted">{task.label}</span>
             <span className="label14 ellipsis">{task.short}</span>
@@ -302,7 +305,6 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
 /* ───────── The whole test ───────── */
 export default function TestApp() {
   const [step, setStep] = useState<Step>('welcome')
-  const [agree, setAgree] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown')
@@ -320,43 +322,42 @@ export default function TestApp() {
       <p className="body16">Pally is a padel app for finding people to play with. We’d love to see how it works for you.</p>
       <ul className="test-list">
         <li><Icon name="clock" size={20} /><span>Takes about <b>10–15 minutes</b></span></li>
-        <li><Icon name="profile" size={20} /><span>Use your <b>phone</b>, somewhere you can talk out loud</span></li>
+        <li><Icon name="profile" size={20} /><span>Best on your <b>phone</b>, somewhere quiet</span></li>
         <li><Icon name="heart" size={20} /><span>We’re testing the app, <b>not you</b>. There are no wrong answers.</span></li>
       </ul>
     </Page>
   )
 
+  const begin = async (thinkAloud: boolean) => {
+    setBusy(true); setError(null)
+    try {
+      await startSession(mode)
+      track('consent_given', mode, { think_aloud: thinkAloud })
+      saveAnswer('think_aloud_opt_in', { selected: thinkAloud })
+      const ok = thinkAloud && micSupported() ? await requestMic() : false
+      setMic(ok ? 'granted' : 'denied')
+      go('about')
+    } catch {
+      setError('We couldn’t connect. Check your internet and try again.')
+    } finally { setBusy(false) }
+  }
+
   if (step === 'consent') return (
     <Page footer={
       <div className="stack gap8">
         {error && <p className="body14" style={{ color: 'var(--danger, #bd2705)' }}>{error}</p>}
-        <Button size="lg" disabled={!agree || busy} trackId="test:consent:continue" onClick={async () => {
-          setBusy(true); setError(null)
-          try {
-            await startSession(mode)
-            track('consent_given', mode)
-            const ok = micSupported() ? await requestMic() : false
-            setMic(ok ? 'granted' : 'denied')
-            go('about')
-          } catch {
-            setError('We couldn’t connect. Check your internet and try again.')
-          } finally { setBusy(false) }
-        }}>{busy ? 'One moment…' : 'I agree, continue'}</Button>
+        <Button size="lg" disabled={busy} trackId="test:consent:think-aloud" onClick={() => begin(true)}>{busy ? 'One moment…' : 'Sounds good, I’ll think out loud'}</Button>
+        <Button size="lg" variant="secondary" disabled={busy} trackId="test:consent:type-only" onClick={() => begin(false)}>I’d rather just type my answers</Button>
+        <p className="caption muted" style={{ textAlign: 'center', textTransform: 'none', fontSize: 12 }}>By continuing, you agree to take part as described above.</p>
       </div>
     }>
-      <h1 className="h2 test-title">Before we start</h1>
-      <p className="body16">While you use the app, we’ll record:</p>
+      <h1 className="h2 test-title">How this works</h1>
       <ul className="test-list">
-        <li><Icon name="mic" size={20} /><span><b>Your voice</b>, so we hear what you think as you go. You can pause it at any time.</span></li>
-        <li><Icon name="checkmark" size={20} /><span><b>What you tap</b> in the app.</span></li>
-        <li><Icon name="edit" size={20} /><span><b>Your answers</b> to a few questions.</span></li>
+        <li><Icon name="checkmark" size={20} /><span>We’ll see <b>what you tap</b> in the app, so we learn what’s easy and what’s tricky.</span></li>
+        <li><Icon name="edit" size={20} /><span>You’ll answer <b>a few short questions</b>.</span></li>
+        <li><Icon name="mic" size={20} /><span><b>If you like, think out loud as you go.</b> We’ll capture what you say so we don’t miss anything. Only the written notes are kept: the audio is deleted within {AUDIO_KEPT_DAYS} days.</span></li>
       </ul>
-      <p className="body16">We don’t record your screen, camera or name. Recordings are stored in the EU, used only for this design project, and deleted when it ends.</p>
-      <p className="body16">Your browser will ask for microphone access next. If you’d rather not, you can still take part by typing.</p>
-      <TButton className={`test-option ${agree ? 'on' : ''}`} role="checkbox" aria-checked={agree} trackId="test:consent:agree" onClick={() => setAgree(!agree)}>
-        <span className={`check ${agree ? 'on' : ''}`}>{agree && <Icon name="checkmark" size={16} />}</span>
-        <span className="grow">I agree to take part and to be recorded as described</span>
-      </TButton>
+      <p className="body16 muted">We don’t see your screen, camera or name. Everything is stored in the EU and used only for this design project.</p>
     </Page>
   )
 
@@ -367,16 +368,16 @@ export default function TestApp() {
 
   if (step === 'thinkaloud') return (
     <Page progress={0.15} footer={<Button size="lg" trackId="test:thinkaloud:continue" onClick={() => go('task1-intro')}>Got it</Button>}>
-      <h1 className="h2 test-title">Think out loud</h1>
-      <p className="body16">As you use the app, please say what’s on your mind:</p>
+      <h1 className="h2 test-title">{mic === 'granted' ? 'Think out loud' : 'Tips before you start'}</h1>
+      <p className="body16">{mic === 'granted' ? 'As you use the app, please say what’s on your mind:' : 'As you use the app, notice:'}</p>
       <ul className="test-list">
         <li><Icon name="search" size={20} /><span>what you’re <b>looking for</b></span></li>
         <li><Icon name="sparkle" size={20} /><span>what you <b>expect</b> to happen</span></li>
         <li><Icon name="info" size={20} /><span>anything that <b>surprises or confuses</b> you</span></li>
       </ul>
       {mic === 'granted'
-        ? <p className="body16">A red <b>Rec</b> button at the top shows we’re recording. Tap it to pause.</p>
-        : <p className="body16">Microphone access is off, so we won’t record your voice. Your taps still help us, and you can type your answers.</p>}
+        ? <p className="body16">A small <b>mic</b> button at the top shows it’s on. Tap it any time to pause.</p>
+        : <p className="body16">The microphone is off, so you can simply type your answers. What you tap still helps us a lot.</p>}
       <p className="body16">It’s a prototype, so some buttons won’t do anything. That’s fine, just carry on.</p>
     </Page>
   )
