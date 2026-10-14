@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon'
 import { Badge, Button, ProgressRing, Smiley, TButton } from '../components/ui'
 import { setCurrentScreen, track } from '../log'
 import { defaultConfig, type MatchConfig } from '../state'
-import { ABOUT_YOU, BETWEEN, FINAL, TASK_1, TASK_2, type Question } from './content'
+import { ABOUT_YOU, BETWEEN, FINAL, TASK_1, TASK_2, type Question, type Visual } from './content'
 import { Segment, hasMic, micSupported, requestMic } from './recorder'
 import { saveAnswer, startSession } from './session'
 
@@ -89,7 +89,7 @@ function VoiceAnswer({ qid, onChange }: { qid: string; onChange: (a: Answer | nu
   )
 }
 
-function OpenAnswer({ q, onChange }: { q: Extract<Question, { kind: 'open' }>; onChange: (a: Answer | null) => void }) {
+function OpenAnswer({ q, onChange }: { q: { id: string }; onChange: (a: Answer | null) => void }) {
   const voiceOk = hasMic()
   const [how, setHow] = useState<'text' | 'voice'>('text')
   const [text, setText] = useState('')
@@ -126,12 +126,19 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
     if (skipped) v = { mode: 'skipped' }
     else if (q.kind === 'multi') v = { selected: value ?? [], other: other.trim() || undefined }
     else if (q.kind === 'choice' || q.kind === 'scale') v = { selected: value }
-    saveAnswer(q.id, v)
+    if (q.kind === 'parts') {
+      const answers = (value ?? {}) as Record<string, unknown>
+      q.parts.forEach((part) => saveAnswer(part.id, answers[part.id] ?? { mode: 'skipped' }))
+    } else saveAnswer(q.id, v)
     track('question_answered', q.id, { skipped })
     if (i + 1 < questions.length) setI(i + 1)
     else onDone()
   }
-  const ready = q.kind === 'multi' ? (Array.isArray(value) && value.length > 0) || !!other.trim() : value !== null
+  const ready = q.kind === 'multi'
+    ? (Array.isArray(value) && value.length > 0) || !!other.trim()
+    : q.kind === 'parts'
+      ? q.parts.every((part) => !!(value as Record<string, unknown> | null)?.[part.id])
+      : value !== null
   const progress = progressFrom + ((progressTo - progressFrom) * i) / questions.length
 
   return (
@@ -178,54 +185,49 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
           <div className="row" style={{ justifyContent: 'space-between' }}><span className="body14 muted">{q.low}</span><span className="body14 muted">{q.high}</span></div>
         </div>
       )}
-      {q.kind === 'open' && q.visual === 'badges' && <RequestBadges />}
-      {q.kind === 'open' && q.visual === 'scores' && <ScoreCards />}
       {q.kind === 'open' && <OpenAnswer key={q.id} q={q} onChange={setValue} />}
+      {q.kind === 'parts' && q.parts.map((part, n) => (
+        <div key={part.id} className="stack gap12 test-part">
+          <VisualFor v={part.visual} />
+          <p className="h6">{part.prompt}</p>
+          <OpenAnswer q={part} onChange={(a) => setValue((prev: unknown) => ({ ...((prev as Record<string, unknown>) ?? {}), [part.id]: a }))} />
+          {n < q.parts.length - 1 && <div className="divider" />}
+        </div>
+      ))}
     </Page>
   )
 }
 
-/** The labels exactly as they appear on join-request cards (no captions), asked before the full score cards */
-function RequestBadges() {
-  return (
-    <div className="test-badges" aria-label="Labels from join requests">
-      <Badge icon="badge">Highly reliable</Badge>
-      <Badge icon="badge">Sometimes cancels late</Badge>
-      <Badge icon="handshake">Great teammate</Badge>
-      <Badge icon="handshake">Mixed feedback</Badge>
+/** What each answer field refers to: the labels as on join-request cards (no captions),
+ *  or the Reputation cards exactly as on a player's profile (Figma: ScoreCard). */
+function VisualFor({ v }: { v: Visual }) {
+  if (v === 'badges-attendance') return (
+    <div className="test-badges" aria-label="Labels from join requests"><Badge icon="badge">Highly reliable</Badge><Badge icon="badge">Sometimes cancels late</Badge></div>
+  )
+  if (v === 'badges-sportsmanship') return (
+    <div className="test-badges" aria-label="Labels from join requests"><Badge icon="handshake">Great teammate</Badge><Badge icon="handshake">Mixed feedback</Badge></div>
+  )
+  if (v === 'score-attendance') return (
+    <div className="stack gap8">
+      <p className="h6">Attendance</p>
+      <div className="score-card">
+        <div className="grow stack gap16">
+          <div className="stack gap4"><span className="score-card__value">92%</span><span className="score-card__caption">Matches attended on time</span></div>
+          <div><Badge icon="badge" variant="media">Highly reliable</Badge></div>
+        </div>
+        <ProgressRing value={92} />
+      </div>
     </div>
   )
-}
-
-/** The Reputation cards exactly as on a player's profile (Figma: ScoreCard), so people know which scores we mean */
-function ScoreCards() {
   return (
-    <div className="stack gap16" aria-label="Attendance and Sportsmanship scores">
-      <div className="stack gap8">
-        <p className="h6">Attendance</p>
-        <div className="score-card">
-          <div className="grow stack gap16">
-            <div className="stack gap4">
-              <span className="score-card__value">92%</span>
-              <span className="score-card__caption">Matches attended on time</span>
-            </div>
-            <div><Badge icon="badge" variant="media">Highly reliable</Badge></div>
-          </div>
-          <ProgressRing value={92} />
+    <div className="stack gap8">
+      <p className="h6">Sportsmanship</p>
+      <div className="score-card">
+        <div className="grow stack gap16">
+          <div className="stack gap4"><span className="score-card__value">90%</span><span className="score-card__caption">Players would play with them again</span></div>
+          <div><Badge icon="handshake" variant="media">Great teammate</Badge></div>
         </div>
-      </div>
-      <div className="stack gap8">
-        <p className="h6">Sportsmanship</p>
-        <div className="score-card">
-          <div className="grow stack gap16">
-            <div className="stack gap4">
-              <span className="score-card__value">90%</span>
-              <span className="score-card__caption">Players would play with them again</span>
-            </div>
-            <div><Badge icon="handshake" variant="media">Great teammate</Badge></div>
-          </div>
-          <Smiley mood="happy" />
-        </div>
+        <Smiley mood="happy" />
       </div>
     </div>
   )

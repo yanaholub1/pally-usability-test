@@ -521,3 +521,4 @@ p { margin: 0; }
 }
 
 .test-badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; }
+.test-part .divider { margin-top: 12px; }
