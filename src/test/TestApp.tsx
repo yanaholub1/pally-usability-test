@@ -218,7 +218,6 @@ function VisualFor({ v }: { v: Visual }) {
   )
   if (v === 'score-attendance') return (
     <div className="stack gap8">
-      <p className="h6">Attendance</p>
       <div className="score-card">
         <div className="grow stack gap16">
           <div className="stack gap4"><span className="score-card__value">92%</span><span className="score-card__caption">Matches attended on time</span></div>
@@ -230,7 +229,6 @@ function VisualFor({ v }: { v: Visual }) {
   )
   return (
     <div className="stack gap8">
-      <p className="h6">Sportsmanship</p>
       <div className="score-card">
         <div className="grow stack gap16">
           <div className="stack gap4"><span className="score-card__value">90%</span><span className="score-card__caption">Players would play with them again</span></div>
