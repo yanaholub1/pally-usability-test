@@ -42,6 +42,7 @@ function VoiceAnswer({ qid, onChange }: { qid: string; onChange: (a: Answer | nu
   const [state, setState] = useState<'idle' | 'recording' | 'done'>('idle')
   const [secs, setSecs] = useState(0)
   const [url, setUrl] = useState<string | null>(null)
+  const [tooShort, setTooShort] = useState(false)
   const seg = useRef<Segment | null>(null)
   const take = useRef(0)
   useEffect(() => {
@@ -63,18 +64,26 @@ function VoiceAnswer({ qid, onChange }: { qid: string; onChange: (a: Answer | nu
     const s = seg.current
     if (!s) return
     const res = await s.stop()
-    setState('done')
-    if (res) {
-      if (url) URL.revokeObjectURL(url)
-      setUrl(URL.createObjectURL(res.blob))
-      onChange({ mode: 'voice', segment: s.name, duration_ms: res.durationMs })
+    // Very short or empty recordings (a known iPhone quirk) aren't accepted: ask to try again
+    if (!res || res.blob.size < 2000 || res.durationMs < 1200) {
+      track('voice_answer_too_short', qid, { bytes: res?.blob.size ?? 0, duration_ms: res?.durationMs ?? 0 })
+      setTooShort(true); setState('idle'); onChange(null)
+      return
     }
+    setTooShort(false)
+    setState('done')
+    if (url) URL.revokeObjectURL(url)
+    setUrl(URL.createObjectURL(res.blob))
+    onChange({ mode: 'voice', segment: s.name, duration_ms: res.durationMs })
   }
   const mmss = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`
   return (
     <div className="voice-answer">
       {state === 'idle' && (
-        <TButton className="voice-btn" trackId={`answer:${qid}:record`} onClick={start}><Icon name="mic" size={28} /><span>Tap to record</span></TButton>
+        <div className="stack gap8" style={{ alignItems: 'center' }}>
+          <TButton className="voice-btn" trackId={`answer:${qid}:record`} onClick={start}><Icon name="mic" size={28} /><span>Tap to record</span></TButton>
+          {tooShort && <p className="body14" style={{ color: 'var(--danger, #bd2705)', textAlign: 'center' }}>That one didn’t come through. Please try again and speak for a few seconds, or type instead.</p>}
+        </div>
       )}
       {state === 'recording' && (
         <TButton className="voice-btn voice-btn--rec" trackId={`answer:${qid}:stop`} onClick={stop}><span className="voice-btn__stop" /><span>Recording {mmss} · tap to stop</span></TButton>

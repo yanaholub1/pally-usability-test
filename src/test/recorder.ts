@@ -92,14 +92,30 @@ export class Segment {
     if (this.rec?.state === 'paused') { this.rec.resume(); this.paused = false; track('recording_resumed', this.name) }
   }
 
-  /** Stops and returns a local copy (for playback) once the last piece is in */
-  async stop(): Promise<{ blob: Blob; durationMs: number } | null> {
-    if (!this.rec) return null
+  /** Stops and returns a local copy (for playback) once the last piece is in. Safe to call twice. */
+  private stopping: Promise<{ blob: Blob; durationMs: number } | null> | null = null
+  stop(): Promise<{ blob: Blob; durationMs: number } | null> {
+    if (this.stopping) return this.stopping
+    const rec = this.rec
+    if (!rec) return Promise.resolve(null)
     const durationMs = msSinceStart() - this.startMs
-    if (this.rec.state !== 'inactive') this.rec.stop()
-    await this.stopped
-    track('recording_stop', this.name, { duration_ms: durationMs, pieces: this.index })
-    return { blob: new Blob(this.chunks, { type: this.mime }), durationMs }
+    this.stopping = (async () => {
+      // Safari can deliver the last piece just after 'stop': wait for it (or give up after 1.5 s)
+      const lastPiece = new Promise<void>((res) => {
+        const prev = rec.ondataavailable
+        rec.ondataavailable = (e) => { prev?.call(rec, e); res() }
+        setTimeout(res, 1500)
+      })
+      if (rec.state !== 'inactive') {
+        try { rec.requestData() } catch { /* not supported everywhere */ }
+        rec.stop()
+      }
+      await Promise.all([this.stopped, lastPiece])
+      const blob = new Blob(this.chunks, { type: this.mime })
+      track('recording_stop', this.name, { duration_ms: durationMs, pieces: this.index, bytes: blob.size })
+      return { blob, durationMs }
+    })()
+    return this.stopping
   }
 
   /** Waits for uploads (used before leaving the last screen) */

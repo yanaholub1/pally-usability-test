@@ -111,14 +111,23 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone, 
   )
 
   // Log taps that land on nothing interactive: they show where people expected something to happen.
+  // Only real taps count: the finger must lift close to where it went down (a scroll or swipe isn't a tap).
   const deviceRef = useRef<HTMLDivElement>(null)
+  const press = useRef<{ x: number; y: number; at: number; el: HTMLElement } | null>(null)
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    const el = e.target as HTMLElement
     const rect = deviceRef.current!.getBoundingClientRect()
     setLastPointer(e.clientX - rect.left, e.clientY - rect.top, rect.width, rect.height)
-    if (el.closest('button, a, input, [role="slider"], [data-track]')) return
+    press.current = { x: e.clientX, y: e.clientY, at: performance.now(), el: e.target as HTMLElement }
+  }, [])
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    const p = press.current
+    press.current = null
+    if (!p || Math.hypot(e.clientX - p.x, e.clientY - p.y) > 10 || performance.now() - p.at > 700) return
+    const el = p.el
+    if (el.closest('button, a, input, textarea, [role="slider"], [data-track]')) return
+    const rect = deviceRef.current!.getBoundingClientRect()
     const label = (el.closest('[aria-label]') as HTMLElement | null)?.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 60) ?? ''
-    track('tap_dead', label, { x: Math.round(e.clientX - rect.left), y: Math.round(e.clientY - rect.top), w: Math.round(rect.width) })
+    track('tap_dead', label, { x: Math.round(e.clientX - rect.left), y: Math.round(e.clientY - rect.top), w: Math.round(rect.width), h: Math.round(rect.height) })
   }, [])
 
   // Scroll depth: when a list stops moving, log how far down it is (and the deepest point reached on this screen)
@@ -151,7 +160,7 @@ export default function Prototype({ start = 'home', initialConfig, onMilestone, 
 
   return (
     <Ctx.Provider value={ctx}>
-      <div className="device device--framed" ref={deviceRef} onPointerDown={onPointerDown}>
+      <div className="device device--framed" ref={deviceRef} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { press.current = null }}>
         <StatusBar light={profile ? true : lightStatus.includes(current)} />
         <div key={`${current}-${nonce}`} className={`screen-host screen--${dir}`} style={{ position: 'absolute', inset: 0 }}>
           <Screen />
