@@ -71,6 +71,11 @@ p { margin: 0; }
   .device { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
   :root { --safe-top: max(12px, env(safe-area-inset-top)); --safe-bottom: max(12px, env(safe-area-inset-bottom)); }
   .statusbar, .home-indicator { display: none !important; }
+  /* Keyboard open: the page fits the visible area, so Next sits right above the keyboard */
+  html.kb-open .stage { position: fixed; left: 0; right: 0; top: var(--vv-top, 0); height: var(--vv-h, 100%); }
+  html.kb-open .device { height: 100%; }
+  html.kb-open { --safe-bottom: 12px; }
+  html.kb-open .bottom-bar { padding-bottom: 12px; }
 }
 
 .statusbar {
@@ -478,7 +483,9 @@ p { margin: 0; }
 .test-progress i { display: block; height: 100%; background: var(--brand-500); border-radius: 4px; transition: width .4s ease; }
 .test-title { margin: 4px 0 0; }
 .body18 { font-size: 18px; line-height: 27px; font-weight: 500; }
-.test-task-text { padding: 16px; border-radius: 16px; background: var(--brand-50, #edf6ff); }
+.test-task-text b, .task-bar__text b { font-weight: 600; }
+.test-task-text p + p, .task-bar__text p + p { margin-top: 12px; }
+.test-task-text { font-weight: 400; padding: 16px; border-radius: 16px; background: var(--brand-50, #edf6ff); }
 .test-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
 .test-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 24px; }
 .test-list li > :first-child { margin-top: 2px; flex-shrink: 0; color: var(--brand-500); }

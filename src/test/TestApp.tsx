@@ -18,13 +18,35 @@ const mode = ((): 'unmoderated' | 'moderated' | 'pilot' => {
   return m === 'moderated' || m === 'pilot' ? m : 'unmoderated'
 })()
 
-/** Renders **bold** segments in task copy */
+/** Task copy: a blank line starts a new paragraph, **…** is a highlight */
 function rich(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => (part.startsWith('**') ? <b key={i}>{part.slice(2, -2)}</b> : part))
+  return text.split(/\n\n+/).map((para, p) => (
+    <p key={p}>{para.split(/(\*\*[^*]+\*\*)/g).map((part, i) => (part.startsWith('**') ? <b key={i}>{part.slice(2, -2)}</b> : part))}</p>
+  ))
+}
+
+/** On phones, keep the page (and its Next/Continue button) above the on-screen keyboard */
+function useKeyboardAware() {
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv || !matchMedia('(max-width: 520px), (max-height: 760px) and (pointer: coarse)').matches) return
+    const root = document.documentElement
+    const update = () => {
+      const open = window.innerHeight - vv.height > 120
+      root.classList.toggle('kb-open', open)
+      root.style.setProperty('--vv-h', `${vv.height}px`)
+      root.style.setProperty('--vv-top', `${vv.offsetTop}px`)
+      if (open) (document.activeElement as HTMLElement | null)?.scrollIntoView?.({ block: 'nearest' })
+    }
+    update()
+    vv.addEventListener('resize', update); vv.addEventListener('scroll', update)
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); root.classList.remove('kb-open') }
+  }, [])
 }
 
 /* ───────── Layout shells ───────── */
 function Page({ children, footer, progress }: { children: ReactNode; footer: ReactNode; progress?: number }) {
+  useKeyboardAware()
   return (
     <div className="stage">
       <div className="device test-page">
@@ -243,7 +265,7 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
             ? <Button size="sm" trackId="taskbar:done" onClick={() => end('completed')}>Done</Button>
             : <TButton className="link task-bar__skip" trackId="taskbar:stuck" onClick={() => setConfirmSkip(true)}>I’m stuck</TButton>}
         </div>
-        {open && <p className="body14 task-bar__text">{rich(task.text)}</p>}
+        {open && <div className="body14 task-bar__text">{rich(task.text)}</div>}
         {finished && <p className="body14 task-bar__text">That’s everything. Tap <b>Done</b> when you’re ready to move on.</p>}
         {confirmSkip && (
           <div className="task-bar__confirm">
@@ -346,7 +368,7 @@ export default function TestApp() {
     <Page progress={0.2} footer={<Button size="lg" trackId="test:task1:begin" onClick={() => go('task1')}>Start task 1</Button>}>
       <p className="caption muted">{TASK_1.label}</p>
       <h1 className="h2 test-title">{TASK_1.short}</h1>
-      <p className="body18 test-task-text">{rich(TASK_1.text)}</p>
+      <div className="body18 test-task-text">{rich(TASK_1.text)}</div>
       <p className="body14 muted">You can reread this any time by tapping the task at the top of the screen.</p>
     </Page>
   )
@@ -357,13 +379,13 @@ export default function TestApp() {
       onDone={(how) => { task1Done.current = how === 'completed'; go('between') }} />
   )
 
-  if (step === 'between') return <QuestionFlow questions={BETWEEN} progressFrom={0.45} progressTo={0.55} onDone={() => go('task2-intro')} intro={<p className="h5" style={{ marginBottom: 4 }}>Nice work. Two quick questions</p>} />
+  if (step === 'between') return <QuestionFlow questions={BETWEEN} progressFrom={0.45} progressTo={0.55} onDone={() => go('task2-intro')} />
 
   if (step === 'task2-intro') return (
     <Page progress={0.55} footer={<Button size="lg" trackId="test:task2:begin" onClick={() => go('task2')}>Start task 2</Button>}>
       <p className="caption muted">{TASK_2.label}</p>
       <h1 className="h2 test-title">Choose your players</h1>
-      <p className="body18 test-task-text">{rich(TASK_2.text)}</p>
+      <div className="body18 test-task-text">{rich(TASK_2.text)}</div>
       <p className="body14 muted">You’ll start on the home screen with your match booked.</p>
     </Page>
   )

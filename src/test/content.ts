@@ -21,7 +21,8 @@ export const ABOUT_YOU: Question[] = [
 export const TASK_1 = {
   label: 'Task 1 of 2',
   short: 'Set up a match',
-  text: 'Imagine you want to set up a match and find players to play with. Go ahead and set up the match. In this example, the app only lets you choose the settings where you’ll review and admit players yourself.',
+  // A blank line starts a new paragraph
+  text: 'Imagine you want to set up a match and find players to play with. Go ahead and set up the match.\n\nIn this example, the app only lets you choose the settings where you’ll review and admit players yourself.',
 }
 
 export const BETWEEN: Question[] = [
@@ -33,25 +34,29 @@ export const TASK_2 = {
   label: 'Task 2 of 2',
   short: 'Choose 3 of 5 players',
   // **…** shows in bold
-  text: 'Your match is booked, and people have started asking to join. **5 players want in, but there are only 3 spots.** Decide who you’d actually want on court with you, taking the time you’d take in real life. Afterwards, we’ll ask you about your choices.',
+  text: 'Your match is booked, and people have started asking to join. **5 players want in, but there are only 3 spots.**\n\nDecide who you’d actually want on court with you, taking the time you’d take in real life. Afterwards, we’ll ask you about your choices.',
 }
 
 export const FINAL: Question[] = [
   { id: 'final_why_chose', kind: 'open', title: 'Why did you choose these players?' },
   { id: 'final_profile_helpful', kind: 'open', title: 'When you checked their profiles, what information was helpful?' },
+  // One label/score type per page, so each gets its own answer and isn't read against the other.
+  // The answer ids (final_badges_attendance etc.) are unchanged.
   {
-    id: 'final_badges', kind: 'parts', title: 'On the requests, you saw labels like these. What do they tell you about a player?', hint: 'In your own words, there’s no right answer.',
-    parts: [
-      { id: 'final_badges_attendance', visual: 'badges-attendance', prompt: 'What do these labels tell you?' },
-      { id: 'final_badges_sportsmanship', visual: 'badges-sportsmanship', prompt: 'And what do these labels tell you?' },
-    ],
+    id: 'final_badges_1', kind: 'parts', title: 'On the requests, you saw labels like these.', hint: 'In your own words, there’s no right answer.',
+    parts: [{ id: 'final_badges_attendance', visual: 'badges-attendance', prompt: 'What do these labels tell you about a player?' }],
   },
   {
-    id: 'final_scores', kind: 'parts', title: 'On players’ profiles, you saw these scores. What do you think they mean?', hint: 'In your own words, there’s no right answer.',
-    parts: [
-      { id: 'final_score_attendance', visual: 'score-attendance', prompt: 'What does the Attendance score mean?' },
-      { id: 'final_score_sportsmanship', visual: 'score-sportsmanship', prompt: 'What does the Sportsmanship score mean?' },
-    ],
+    id: 'final_badges_2', kind: 'parts', title: 'You also saw labels like these.',
+    parts: [{ id: 'final_badges_sportsmanship', visual: 'badges-sportsmanship', prompt: 'What do these labels tell you about a player?' }],
+  },
+  {
+    id: 'final_scores_1', kind: 'parts', title: 'On players’ profiles, you saw this score.', hint: 'In your own words, there’s no right answer.',
+    parts: [{ id: 'final_score_attendance', visual: 'score-attendance', prompt: 'What does the Attendance score mean?' }],
+  },
+  {
+    id: 'final_scores_2', kind: 'parts', title: 'You also saw this score.',
+    parts: [{ id: 'final_score_sportsmanship', visual: 'score-sportsmanship', prompt: 'What does the Sportsmanship score mean?' }],
   },
   { id: 'final_profile_not_helpful', kind: 'open', title: 'Was anything on the profiles not helpful, or missing?', optional: true },
   { id: 'final_confidence', kind: 'scale', title: 'How confident do you feel about who you’ll be playing with?', low: 'Not at all', high: 'Very' },

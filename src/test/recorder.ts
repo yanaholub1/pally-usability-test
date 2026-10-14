@@ -99,12 +99,14 @@ export class Take {
     return true
   }
 
-  stop() {
+  /** Keeps recording a moment after Stop so the last word isn't cut off */
+  stop(tailMs = 800) {
     if (this.stopping) return this.stopping
     const rec = this.rec
     if (!rec) return Promise.resolve(null)
-    const durationMs = msSinceStart() - this.startMs
     this.stopping = (async () => {
+      if (tailMs && rec.state === 'recording') await new Promise((r) => setTimeout(r, tailMs))
+      const durationMs = msSinceStart() - this.startMs
       const stopped = new Promise<void>((res) => { rec.onstop = () => res(); if (rec.state === 'inactive') res() })
       // Safari can deliver the last piece just after 'stop': wait for it (or give up after 1.5 s)
       const lastPiece = new Promise<void>((res) => {
@@ -194,8 +196,10 @@ export class Segment {
     if (this.stopping) return this.stopping
     const rec = this.rec
     if (!rec) return Promise.resolve(null)
-    const durationMs = msSinceStart() - this.startMs
     this.stopping = (async () => {
+      // A moment of extra audio so a sentence finished as the task ends isn't cut off
+      if (rec.state === 'recording') await new Promise((r) => setTimeout(r, 800))
+      const durationMs = msSinceStart() - this.startMs
       // Safari can deliver the last piece just after 'stop': wait for it (or give up after 1.5 s)
       const lastPiece = new Promise<void>((res) => {
         const prev = rec.ondataavailable

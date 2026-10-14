@@ -22,7 +22,7 @@ const DONE_BARS = 34
 const takeCounts: Record<string, number> = {}
 
 type Recorded = { take: Take; durationMs: number; url: string; bars: number[] }
-type Notice = null | 'denied' | 'blocked' | 'too-short' | 'save-failed'
+type Notice = null | 'denied' | 'blocked' | 'too-short' | 'empty' | 'save-failed'
 
 const mmss = (ms: number) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }
 /** Gentle stand-in when the browser gives us no mic level (e.g. iOS before the audio context wakes) */
@@ -103,7 +103,7 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
     return () => clearTimeout(id)
   }, [deleted])
 
-  useEffect(() => () => { void takeRef.current?.stop() }, [])
+  useEffect(() => () => { void takeRef.current?.stop(0) }, [])
 
   const begin = async (from: 'record' | 'retry' | 'rerecord') => {
     if (!hasMic()) {
@@ -153,10 +153,12 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
     const prev = prevRef.current
     prevRef.current = null
     // Very short or empty recordings (a known iPhone quirk) aren't accepted
-    if (!res || res.blob.size < 2000 || res.durationMs < 1200) {
+    if (!res || res.blob.size < 2000 || res.durationMs < 2000 /* incl. the 0.8 s tail */) {
       track('voice_answer_too_short', qid, { bytes: res?.blob.size ?? 0, duration_ms: res?.durationMs ?? 0 })
-      setNotice('too-short')
-      setAnnounce('That recording didn’t come through.')
+      // Too short to be an answer vs. long enough but nothing captured (a known iPhone quirk)
+      const short = !res || res.durationMs < 2000
+      setNotice(short ? 'too-short' : 'empty')
+      setAnnounce(short ? 'We didn’t get that, the recording was too short.' : 'That recording didn’t come through.')
       if (prev) { setCur(prev); setMode('recorded'); onChange({ mode: 'voice', segment: prev.take.name, duration_ms: prev.durationMs }) }
       else { setCur(null); setMode('text') }
       return
@@ -217,7 +219,13 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
       {notice === 'too-short' && (
         <div className="notice notice--error">
           <Icon name="alert" size={20} />
-          <p>That recording didn’t come through. Please try again and speak for a few seconds, or type instead.</p>
+          <p>We didn’t get that, the recording was too short. Please record for at least a few seconds, or type instead.</p>
+        </div>
+      )}
+      {notice === 'empty' && (
+        <div className="notice notice--error">
+          <Icon name="alert" size={20} />
+          <p>That recording didn’t come through. Please try again, or type instead.</p>
         </div>
       )}
       {notice === 'save-failed' && (
@@ -235,7 +243,7 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
             onChange={(e) => {
               setText(e.target.value)
               if (deleted) { URL.revokeObjectURL(deleted.url); setDeleted(null) }
-              if (notice === 'too-short') setNotice(null)
+              if (notice === 'too-short' || notice === 'empty') setNotice(null)
               onChange(e.target.value.trim() ? { mode: 'text', text: e.target.value.trim() } : null)
             }} />
           {showRecord && (
