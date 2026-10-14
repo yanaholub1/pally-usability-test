@@ -37,10 +37,10 @@ function FindTiles() {
   )
   return (
     <div className="stack gap12">
-      {/* Figma 2195:38448: "Join a match" finds existing matches; "Create a match" starts by booking a court */}
+      {/* Figma 2195:38448: "Join a match" finds existing matches; "Start a match" starts by booking a court */}
       <SectionHeader title="Find your next game" />
       <div className="stack gap8">
-        <div className="row gap8">{tile('ball', 'Join a match', () => push('find'))}{tile('field', 'Create a match', () => push('bookCourt'))}</div>
+        <div className="row gap8">{tile('ball', 'Join a match', () => push('find'))}{tile('field', 'Start a match', () => push('bookCourt'))}</div>
         <div className="row gap8">{tile('trophy', 'Tournaments')}{tile('hat', 'Lessons')}</div>
       </div>
     </div>
