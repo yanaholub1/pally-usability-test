@@ -51,6 +51,13 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
   const canRecord = micSupported()
   const restored = initial?.mode === 'voice' && recordedCache[qid]?.take.name === initial.segment ? recordedCache[qid] : null
   const [mode, setMode] = useState<'text' | 'recording' | 'recorded'>(restored ? 'recorded' : 'text')
+  // Between tapping Stop and the recording being ready (~1–2 s: a short tail so the last word isn't cut,
+  // then the final piece arrives). The screen reacts at once so nobody taps again.
+  const [finishing, setFinishing] = useState(false)
+  const finishingRef = useRef(false)
+  // The recorded player's buttons ignore taps for a moment after it appears, so a second tap meant
+  // for Stop can't land on Delete
+  const armedAt = useRef(0)
   const [text, setText] = useState(initial?.mode === 'text' ? initial.text : '')
   const [focused, setFocused] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
@@ -79,6 +86,7 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
   useEffect(() => {
     if (mode !== 'recording') return
     const id = setInterval(() => {
+      if (finishingRef.current) return
       const ms = Date.now() - t0.current
       const v = micLevel() ?? idleLevel(ms)
       levelsRef.current.push(v)
@@ -154,7 +162,11 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
     const take = takeRef.current
     if (!take || stoppingRef.current) return
     stoppingRef.current = true
+    finishingRef.current = true; setFinishing(true)
+    setAnnounce('Saving your recording')
     const res = await take.stop()
+    finishingRef.current = false; setFinishing(false)
+    armedAt.current = Date.now()
     onRecording(false)
     if (why === 'max') track('recording_max_length', qid)
     const prev = prevRef.current
@@ -178,8 +190,14 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
     setAnnounce(`Recording stopped, ${Math.round(res.durationMs / 1000)} seconds`)
   }
 
+  const tooSoon = (what: string) => {
+    if (Date.now() - armedAt.current > 900) return false
+    track('tap_ignored_too_soon', `${qid}:${what}`)
+    return true
+  }
+
   const remove = () => {
-    if (!cur) return
+    if (!cur || tooSoon('delete')) return
     audioRef.current?.pause()
     track('voice_answer_deleted', qid)
     setDeleted(cur); setCur(null); setNotice(null)
@@ -264,7 +282,9 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
       {mode === 'recording' && (
         <div className="answer-field answer-field--rec">
           <div className="row" style={{ justifyContent: 'space-between', height: 20 }}>
-            <span className="rec-status"><span className="rec-status__dot" aria-hidden />Recording</span>
+            {finishing
+              ? <span className="rec-status rec-status--saving"><span className="spinner spinner--dark spinner--sm" aria-hidden />Recording stopped</span>
+              : <span className="rec-status"><span className="rec-status__dot" aria-hidden />Recording</span>}
             <span className="rec-timer">{mmss(elapsed)} / {mmss(MAX_MS)}</span>
           </div>
           <div className="wave wave--live" aria-hidden>
@@ -272,7 +292,10 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
           </div>
           <div className="rec-limit" aria-hidden><i style={{ width: `${Math.min(100, (elapsed / MAX_MS) * 100)}%` }} /></div>
           <div className="answer-field__bar">
-            <Button className="btn--m" variant="danger" icon="stop" trackId={`answer:${qid}:stop`} ariaLabel="Stop recording" onClick={() => void stop('tap')}>Stop</Button>
+            {finishing
+              // Same spot as Stop, but inert: a second tap here does nothing
+              ? <span className="rec-saving-pill" aria-hidden>Saving…</span>
+              : <Button className="btn--m" variant="danger" icon="stop" trackId={`answer:${qid}:stop`} ariaLabel="Stop recording" onClick={() => void stop('tap')}>Stop</Button>}
           </div>
         </div>
       )}
@@ -294,7 +317,7 @@ export function AnswerField({ qid, initial, onChange, onRecording, registerSave,
               onTimeUpdate={(e) => setPlayed(Math.min(1, e.currentTarget.currentTime / (cur.durationMs / 1000)))} />
           </div>
           <div className="answer-field__bar">
-            <Button className="btn--m" variant="ghost" trackId={`answer:${qid}:rerecord`} onClick={() => { audioRef.current?.pause(); void begin('rerecord') }}>Re-record</Button>
+            <Button className="btn--m" variant="ghost" trackId={`answer:${qid}:rerecord`} onClick={() => { if (tooSoon('rerecord')) return; audioRef.current?.pause(); void begin('rerecord') }}>Re-record</Button>
             <Button className="btn--m btn--ghost-danger" variant="ghost" trackId={`answer:${qid}:delete`} onClick={remove}>Delete</Button>
           </div>
         </div>
