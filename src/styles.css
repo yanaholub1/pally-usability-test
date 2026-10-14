@@ -598,3 +598,11 @@ p { margin: 0; }
   html.test-root, html.test-root body { position: fixed; inset: 0; overflow: hidden; overscroll-behavior: none; }
 }
 html.test-root .test-page__scroll, html.test-root .screen__scroll { overscroll-behavior: contain; }
+
+/* Club page: the section still to choose, after tapping the caption or the disabled Continue */
+.choice-caption { display: block; width: 100%; margin-bottom: -4px; }
+.needs-choice .section-header .h5 { color: #bd2705; transition: color .2s; }
+.needs-choice .chip, .needs-choice .rcard { border-color: #bd2705; box-shadow: 0 0 0 1px #bd2705; transition: border-color .2s, box-shadow .2s; }
+.needs-choice { animation: needs-choice-nudge .4s ease-out; }
+@keyframes needs-choice-nudge { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .needs-choice { animation: none; } }

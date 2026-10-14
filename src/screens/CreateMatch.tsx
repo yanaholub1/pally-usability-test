@@ -159,6 +159,24 @@ export function ClubScreen() {
   const photo = asset('clubs', club.photo)
   const [tab, setTab] = useState('Courts')
   const startTimes = startTimesFor(config.dayIndex)
+  // What's still missing (day and duration always have a value). A caption above Continue says what to
+  // choose next; tapping it, or the disabled Continue, scrolls there and briefly marks it in red.
+  const missing: 'time' | 'court' | null = !config.time ? 'time' : !config.courtId ? 'court' : null
+  const timeRef = useRef<HTMLDivElement>(null)
+  const courtRef = useRef<HTMLDivElement>(null)
+  const [flagged, setFlagged] = useState<'time' | 'court' | null>(null)
+  useEffect(() => { if (flagged && flagged !== missing) setFlagged(null) }, [missing, flagged])
+  useEffect(() => {
+    if (!flagged) return
+    const id = setTimeout(() => setFlagged(null), 2500)
+    return () => clearTimeout(id)
+  }, [flagged])
+  const showMissing = (from: 'caption' | 'continue') => {
+    if (!missing) return
+    track('missing_choice_shown', missing, { from })
+    ;(missing === 'time' ? timeRef : courtRef).current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setFlagged(missing)
+  }
   return (
     <div className="screen">
       <div className="screen__scroll">
@@ -202,7 +220,7 @@ export function ClubScreen() {
               ))}
             </div>
           </div>
-          <div className="stack gap12">
+          <div ref={timeRef} className={`stack gap12 ${flagged === 'time' ? 'needs-choice' : ''}`}>
             <SectionHeader title="Start time" />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {startTimes.map((t) => (
@@ -211,7 +229,7 @@ export function ClubScreen() {
             </div>
           </div>
           {config.time && (
-            <div className="stack gap12">
+            <div ref={courtRef} className={`stack gap12 ${flagged === 'court' ? 'needs-choice' : ''}`}>
               <SectionHeader title={`Courts available at ${config.time}`} />
               <div className="stack gap8" role="radiogroup">
                 {courts.map((c) => (
@@ -236,7 +254,17 @@ export function ClubScreen() {
         </div>
       </div>
       <BottomBar>
-        <Button size="lg" disabled={!config.time || !config.courtId} trackId="club:continue" onClick={() => push('visibility')}>Continue</Button>
+        <div className="stack gap12">
+          {missing && (
+            <TButton className="test-caption choice-caption" trackId={`club:caption:${missing}`} onClick={() => showMissing('caption')}>
+              {missing === 'time' ? 'Choose a start time to continue.' : 'Choose a court to continue.'}
+            </TButton>
+          )}
+          {/* A tap on the disabled button still reaches this wrapper */}
+          <div onClick={() => { if (missing) showMissing('continue') }}>
+            <Button size="lg" disabled={!!missing} trackId="club:continue" onClick={() => push('visibility')}>Continue</Button>
+          </div>
+        </div>
       </BottomBar>
     </div>
   )
