@@ -104,8 +104,26 @@ function LeadLineup({ slots }: { slots: LineupSlot[] }) {
   )
 }
 
-export function ClubCard({ name, address, photo, onBook, trackId }: { name: string; address: string; photo: string; onBook: () => void; trackId: string }) {
+/**
+ * Kit ClubCard (UI kit 134:4845). Photo card, scrim at the top behind the name.
+ * Subtitle variants: 'address' (Home · Your clubs), 'next' (Find courts: "Available today" + first
+ * times as chips), 'none' (no times in the next 7 days → "See club").
+ */
+export function ClubCard({ name, address, photo, variant = 'next', next, times = [], moreTimes = 0, onOpen, onTime, trackId }: {
+  name: string; address: string; photo: string
+  variant?: 'address' | 'next' | 'none'
+  /** e.g. "Available today" */
+  next?: string
+  /** First available start times, shown as chips (max 3) */
+  times?: string[]
+  /** How many more times there are after those */
+  moreTimes?: number
+  onOpen: () => void
+  onTime?: (time: string) => void
+  trackId: string
+}) {
   const src = asset('clubs', photo)
+  const shown = times.slice(0, 3)
   return (
     <div
       className="club-card event-tap"
@@ -113,27 +131,35 @@ export function ClubCard({ name, address, photo, onBook, trackId }: { name: stri
       tabIndex={0}
       data-track={`${trackId}:open`}
       onClick={(e) => {
-        // Whole card opens the club's times; its own buttons (save, map, See times) keep their actions
+        // Whole card opens the club; its own buttons (map, times, See club) keep their actions
         if ((e.target as HTMLElement).closest('button')) return
         track('tap', `${trackId}:open`)
-        onBook()
+        onOpen()
       }}
-      style={src ? { backgroundImage: `url(${src})` } : { backgroundImage: 'linear-gradient(160deg,#5b7fb8 0%,#1f4fa3 45%,#123a7a 100%)' }}>
+      style={src ? { backgroundImage: `url(${src})` } : undefined}>
       <div className="club-card__scrim" />
-      <div className="row gap12" style={{ position: 'relative' }}>
-        <div className="row gap8 grow">
-          <Badge icon="calendar" variant="media">10+ times</Badge>
-          <Badge variant="media">From €17/hour</Badge>
+      <div className="row gap8" style={{ position: 'relative', alignItems: 'flex-start' }}>
+        <div className="grow stack gap8" style={{ minWidth: 0, color: '#fff' }}>
+          <p className="club-card__name ellipsis">{name}</p>
+          <span className="row gap4" style={{ minWidth: 0 }}>
+            <Icon name={variant === 'address' ? 'location-pin' : 'calendar'} size={18} />
+            <span className="label14 ellipsis grow">{variant === 'address' ? address : variant === 'none' ? 'No times in the next 7 days' : next ?? 'Available today'}</span>
+          </span>
         </div>
-        <IconButton icon="heart" label="Save club" trackId={`${trackId}:save`} />
+        <Badge variant="media">From €17/h</Badge>
       </div>
-      <div className="row gap12" style={{ position: 'relative', color: '#fff' }}>
-        <div className="grow stack gap8">
-          <p className="h5 ellipsis">{name}</p>
-          <span className="row gap4"><Icon name="location-pin" size={18} /><span className="label14 ellipsis">{address}</span></span>
-        </div>
+      <div className="row gap12" style={{ position: 'relative' }}>
         <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
-        <Button variant="secondary" icon="calendar" trackId={`${trackId}:see-times`} onClick={onBook}>See times</Button>
+        {variant === 'none' ? (
+          <Button variant="secondary" fill trackId={`${trackId}:see-club`} onClick={onOpen}>See club</Button>
+        ) : (
+          <div className="club-card__times">
+            {shown.map((t) => (
+              <TButton key={t} className="time-chip" trackId={`${trackId}:time:${t}`} onClick={() => (onTime ? onTime(t) : onOpen())}>{t}</TButton>
+            ))}
+            {moreTimes > 0 && <TButton className="time-chip time-chip--more" trackId={`${trackId}:more-times`} onClick={onOpen}>+{moreTimes} more</TButton>}
+          </div>
+        )}
       </div>
     </div>
   )

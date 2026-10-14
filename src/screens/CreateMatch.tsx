@@ -133,9 +133,18 @@ export function BookCourtScreen() {
               <Chip trackId="book:duration"><Icon name="clock" size={20} /> Any duration</Chip>
             </>}
           />
-          {clubs.map((c) => (
-            <ClubCard key={c.id} name={c.name} address={c.address} photo={c.photo} trackId={`club-card:${c.id}`} onBook={() => { setConfig({ clubId: c.id, ...closestSlot((d) => startTimesFor(d)), courtId: null }); push('club') }} />
-          ))}
+          {clubs.map((c) => {
+            // Kit "Next available" variant: today's first start times (tomorrow's if today is over)
+            const slot = closestSlot((d) => startTimesFor(d))
+            const dayTimes = startTimesFor(slot.dayIndex)
+            return (
+              <ClubCard key={c.id} name={c.name} address={c.address} photo={c.photo} trackId={`club-card:${c.id}`}
+                variant="next" next={slot.dayIndex === 0 ? 'Available today' : 'Available tomorrow'}
+                times={dayTimes.slice(0, 3)} moreTimes={Math.max(0, dayTimes.length - 3)}
+                onOpen={() => { setConfig({ clubId: c.id, ...slot, courtId: null }); push('club') }}
+                onTime={(t) => { setConfig({ clubId: c.id, dayIndex: slot.dayIndex, time: t, courtId: null }); push('club') }} />
+            )
+          })}
         </div>
       </div>
       <NavBar active="find" />

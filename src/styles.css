@@ -351,8 +351,15 @@ p { margin: 0; }
 .field-group { border: 1px solid var(--gray-300); border-radius: 16px; overflow: hidden; }
 .field-group__row { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 12px; font-weight: 500; font-size: 16px; }
 .field-group__row + .field-group__row { border-top: 1px solid var(--gray-300); }
-.club-card { position: relative; height: 248px; border-radius: 24px; overflow: hidden; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; background: #2b3f5f center / cover no-repeat; flex-shrink: 0; }
-.club-card__scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 80px; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.4) 33%, rgba(0,0,0,.6)); }
+.club-card { position: relative; height: 248px; border-radius: 24px; overflow: hidden; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; background: #27272a center / cover no-repeat; flex-shrink: 0; }
+/* Kit: 98 px scrim at the top behind the name (60% black at the top → clear) */
+.club-card__scrim { position: absolute; left: 0; right: 0; top: 0; height: 98px; background: linear-gradient(to top, rgba(0,0,0,0), rgba(0,0,0,.4) 33%, rgba(0,0,0,.6)); }
+.club-card__name { font-weight: 600; font-size: 18px; line-height: 24px; letter-spacing: -0.03em; }
+.club-card__times { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.time-chip { position: relative; flex-shrink: 0; height: 32px; min-width: 56px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--gray-300); background: #fff; color: var(--gray-900); font-weight: 500; font-size: 12px; line-height: 16px; text-transform: uppercase; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; }
+.time-chip::after { content: ''; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
+.time-chip--more { padding: 0 12px; }
+.time-chip:active { background: var(--gray-100); }
 .day-chip { width: 60px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0; border-radius: 16px; color: var(--gray-700); font-weight: 500; font-size: 14px; line-height: 20px; border: 1px solid transparent; }
 .day-chip.today { border-color: var(--gray-300); }
 .day-chip.on { background: var(--gray-100); border: 1.5px solid var(--gray-900); color: var(--gray-900); }
