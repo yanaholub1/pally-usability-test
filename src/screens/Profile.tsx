@@ -16,16 +16,25 @@ function Stat({ art, fallback, value, label }: { art: string; fallback: string; 
   )
 }
 
-function NotEnoughData({ title }: { title: string }) {
-  const art = asset('illustrations', 'smiley-empty')
+/** Score card when a player has fewer than 5 rated matches (Figma: ScoreCard, not enough data).
+ *  Same navy card as a real score: the ring stays empty (Attendance) or the smiley is faded (Sportsmanship). */
+function NotEnoughData({ kind }: { kind: 'attendance' | 'sportsmanship' }) {
   return (
-    <div className="score-card score-card--empty">
-      <div className="grow stack gap8">
-        <p className="h6">Not enough data</p>
-        <p className="body14 muted">{title} appears after 5 rated matches.</p>
-        <div><Badge icon="profile">New to Pally</Badge></div>
+    <div className="score-card">
+      <div className="grow stack gap16">
+        <div className="stack gap4">
+          <span className="score-card__value" style={{ whiteSpace: "nowrap", letterSpacing: "-0.5px" }}>Not enough data</span>
+          <span className="score-card__caption">Their score appears after 5 rated matches</span>
+        </div>
+        <div><Badge icon={kind === 'attendance' ? 'badge' : 'handshake'} variant="media">New to Pally</Badge></div>
       </div>
-      {art && <img src={art} width={72} height={72} alt="" style={{ opacity: 0.5, filter: 'grayscale(1)' }} />}
+      {kind === 'attendance' ? (
+        <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden style={{ flexShrink: 0 }}>
+          <path d="M72 36C72 55.8823 55.8823 72 36 72C16.1177 72 0 55.8823 0 36C0 16.1177 16.1177 0 36 0C55.8823 0 72 16.1177 72 36ZM5.004 36C5.004 53.1186 18.8814 66.996 36 66.996C53.1186 66.996 66.996 53.1186 66.996 36C66.996 18.8814 53.1186 5.004 36 5.004C18.8814 5.004 5.004 18.8814 5.004 36Z" fill="white" fillOpacity="0.3" />
+        </svg>
+      ) : (
+        <span style={{ opacity: 0.5, display: 'grid', flexShrink: 0 }}><Smiley mood="happy" /></span>
+      )}
     </div>
   )
 }
@@ -129,7 +138,7 @@ export function ProfileOverlay({ r, returnScreen, onClose }: { r: Requester; ret
               <div className="stack gap12">
                 <SectionHeader title="Attendance" info />
                 {r.attendance === null ? (
-                  <NotEnoughData title="This score" />
+                  <NotEnoughData kind="attendance" />
                 ) : (
                   <>
                     <div className="score-card">
@@ -152,7 +161,7 @@ export function ProfileOverlay({ r, returnScreen, onClose }: { r: Requester; ret
               <div className="stack gap12">
                 <SectionHeader title="Sportsmanship" info />
                 {r.sportsmanship === null ? (
-                  <NotEnoughData title="This score" />
+                  <NotEnoughData kind="sportsmanship" />
                 ) : (
                   <div className="score-card">
                     <div className="grow stack gap16">
