@@ -6,6 +6,7 @@ import { setCurrentScreen, track } from '../log'
 import { defaultConfig, type MatchConfig } from '../state'
 import { ABOUT_YOU, BETWEEN, FINAL, TASK_1, TASK_2, type Question, type Visual } from './content'
 import { Segment, hasMic, micSupported, requestMic } from './recorder'
+import { AnswerField } from './AnswerField'
 import { saveAnswer, startSession } from './session'
 
 /** Promised on the consent screen: audio is deleted this many days after the session (transcripts are kept) */
@@ -35,122 +36,41 @@ function Page({ children, footer, progress }: { children: ReactNode; footer: Rea
   )
 }
 
-/* ───────── Answers ───────── */
-type Answer = { mode: 'text'; text: string } | { mode: 'voice'; segment: string; duration_ms: number } | { mode: 'skipped' }
-
-function VoiceAnswer({ qid, onChange }: { qid: string; onChange: (a: Answer | null) => void }) {
-  const [state, setState] = useState<'idle' | 'recording' | 'done'>('idle')
-  const [secs, setSecs] = useState(0)
-  const [url, setUrl] = useState<string | null>(null)
-  const [tooShort, setTooShort] = useState(false)
-  const seg = useRef<Segment | null>(null)
-  const take = useRef(0)
-  useEffect(() => {
-    if (state !== 'recording') return
-    const t0 = Date.now()
-    const id = setInterval(() => setSecs(Math.floor((Date.now() - t0) / 1000)), 250)
-    return () => clearInterval(id)
-  }, [state])
-  useEffect(() => () => { void seg.current?.stop(); if (url) URL.revokeObjectURL(url) }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const start = () => {
-    take.current++
-    const s = new Segment(`ans-${qid.replace(/^(about|between|final)_/, '')}-${take.current}`.slice(0, 32))
-    if (!s.start()) return
-    seg.current = s
-    setSecs(0); setState('recording'); onChange(null)
-  }
-  const stop = async () => {
-    const s = seg.current
-    if (!s) return
-    const res = await s.stop()
-    // Very short or empty recordings (a known iPhone quirk) aren't accepted: ask to try again
-    if (!res || res.blob.size < 2000 || res.durationMs < 1200) {
-      track('voice_answer_too_short', qid, { bytes: res?.blob.size ?? 0, duration_ms: res?.durationMs ?? 0 })
-      setTooShort(true); setState('idle'); onChange(null)
-      return
-    }
-    setTooShort(false)
-    setState('done')
-    if (url) URL.revokeObjectURL(url)
-    setUrl(URL.createObjectURL(res.blob))
-    onChange({ mode: 'voice', segment: s.name, duration_ms: res.durationMs })
-  }
-  const mmss = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`
-  return (
-    <div className="voice-answer">
-      {state === 'idle' && (
-        <div className="stack gap8" style={{ alignItems: 'center' }}>
-          <TButton className="voice-btn" trackId={`answer:${qid}:record`} onClick={start}><Icon name="mic" size={28} /><span>Tap to record</span></TButton>
-          {tooShort && <p className="body14" style={{ color: 'var(--danger, #bd2705)', textAlign: 'center' }}>That one didn’t come through. Please try again and speak for a few seconds, or type instead.</p>}
-        </div>
-      )}
-      {state === 'recording' && (
-        <TButton className="voice-btn voice-btn--rec" trackId={`answer:${qid}:stop`} onClick={stop}><span className="voice-btn__stop" /><span>Recording {mmss} · tap to stop</span></TButton>
-      )}
-      {state === 'done' && (
-        <div className="stack gap12">
-          {url && <audio src={url} controls className="voice-audio" />}
-          <TButton className="link" trackId={`answer:${qid}:rerecord`} onClick={start}>Record again</TButton>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function OpenAnswer({ q, onChange }: { q: { id: string }; onChange: (a: Answer | null) => void }) {
-  // Voice is offered to everyone whose browser can record — also people who chose "type" at the start.
-  // Mic permission is asked the first time they pick "Record voice" (that tap is the user gesture browsers need).
-  const canRecord = micSupported()
-  const [how, setHow] = useState<'text' | 'voice'>('text')
-  const [text, setText] = useState('')
-  const [micState, setMicState] = useState<'ok' | 'asking' | 'denied'>(hasMic() ? 'ok' : 'asking')
-  const pick = async (m: 'text' | 'voice') => {
-    setHow(m)
-    onChange(m === 'text' && text.trim() ? { mode: 'text', text: text.trim() } : null)
-    if (m === 'voice' && !hasMic()) {
-      track('mic_requested_for_answer', q.id)
-      setMicState((await requestMic()) ? 'ok' : 'denied')
-    }
-  }
-  return (
-    <div className="stack gap16">
-      {canRecord && (
-        <div className="answer-toggle" role="tablist" aria-label="How do you want to answer?">
-          {(['text', 'voice'] as const).map((m) => (
-            <TButton key={m} role="tab" aria-selected={how === m} className={how === m ? 'on' : ''}
-              trackId={`answer:${q.id}:mode:${m}`} onClick={() => void pick(m)}>
-              <Icon name={m === 'text' ? 'edit' : 'mic'} size={18} /> {m === 'text' ? 'Type' : 'Record voice'}
-            </TButton>
-          ))}
-        </div>
-      )}
-      {how === 'text' ? (
-        <textarea className="answer-text" rows={5} placeholder="Type your answer…" value={text}
-          onChange={(e) => { setText(e.target.value); onChange(e.target.value.trim() ? { mode: 'text', text: e.target.value.trim() } : null) }} />
-      ) : hasMic() ? (
-        <VoiceAnswer qid={q.id} onChange={onChange} />
-      ) : micState === 'denied' ? (
-        <div className="stack gap12" style={{ alignItems: 'center', textAlign: 'center' }}>
-          <p className="body14 muted">We couldn’t use your microphone. Allow microphone access for this site in your browser settings and try again, or type your answer instead.</p>
-          <TButton className="link" trackId={`answer:${q.id}:mic-retry`} onClick={() => void pick('voice')}>Try again</TButton>
-        </div>
-      ) : (
-        <p className="body14 muted" style={{ textAlign: 'center' }}>Allow microphone access to record your answer…</p>
-      )}
-      {!canRecord && <p className="body14 muted">Your browser can’t record audio, so please type your answer.</p>}
-    </div>
-  )
-}
+/* ───────── Answers: see AnswerField.tsx ───────── */
 
 function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { questions: Question[]; onDone: () => void; progressFrom: number; progressTo: number; intro?: ReactNode }) {
   const [i, setI] = useState(0)
   const q = questions[i]
   const [value, setValue] = useState<unknown>(null)
   const [other, setOther] = useState('')
-  useEffect(() => { setValue(null); setOther(''); setCurrentScreen(`q:${q.id}`); track('question_view', q.id) }, [q.id])
+  // Voice answers: which fields are recording, and what to upload on Next
+  const [recording, setRecording] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
+  const savers = useRef<Record<string, (() => Promise<boolean>) | null>>({})
+  useEffect(() => {
+    setValue(null); setOther(''); setRecording([]); setSaving(false); setSaveFailed(false); savers.current = {}
+    setCurrentScreen(`q:${q.id}`); track('question_view', q.id)
+  }, [q.id])
+  const fieldProps = (id: string) => ({
+    qid: id,
+    saving,
+    onRecording: (on: boolean) => setRecording((r) => (on ? [...r.filter((x) => x !== id), id] : r.filter((x) => x !== id))),
+    registerSave: (fn: (() => Promise<boolean>) | null) => { savers.current[id] = fn },
+  })
 
-  const next = (skipped = false) => {
+  const next = async (skipped = false) => {
+    if (saving) return
+    if (!skipped) {
+      const pending = Object.values(savers.current).filter((f): f is () => Promise<boolean> => !!f)
+      if (pending.length) {
+        setSaving(true)
+        const results = await Promise.all(pending.map((f) => f()))
+        setSaving(false)
+        if (!results.every(Boolean)) { setSaveFailed(true); return }
+        setSaveFailed(false)
+      }
+    }
     let v: unknown = value
     if (skipped) v = { mode: 'skipped' }
     else if (q.kind === 'multi') v = { selected: value ?? [], other: other.trim() || undefined }
@@ -173,8 +93,12 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
   return (
     <Page progress={progress} footer={
       <div className="stack gap12">
-        <Button size="lg" disabled={!ready} trackId={`q:${q.id}:next`} onClick={() => next(false)}>{i + 1 < questions.length ? 'Next' : 'Continue'}</Button>
-        {q.kind === 'open' && q.optional && <TButton className="link" style={{ alignSelf: 'center' }} trackId={`q:${q.id}:skip`} onClick={() => next(true)}>Skip</TButton>}
+        {/* One home for status text: a caption above Next, announced politely */}
+        <p className="test-caption" aria-live="polite">{recording.length ? 'Stop recording to continue' : saving ? 'Saving your answer…' : ''}</p>
+        <Button size="lg" disabled={!ready || recording.length > 0} className={saving ? 'btn--loading' : undefined} trackId={`q:${q.id}:next`} onClick={() => void next(false)}>
+          {saving ? <span className="spinner" aria-label="Saving" /> : saveFailed ? 'Try again' : i + 1 < questions.length ? 'Next' : 'Continue'}
+        </Button>
+        {q.kind === 'open' && q.optional && <TButton className="link" style={{ alignSelf: 'center' }} disabled={saving || recording.length > 0} trackId={`q:${q.id}:skip`} onClick={() => void next(true)}>Skip</TButton>}
       </div>
     }>
       {i === 0 && intro}
@@ -214,12 +138,12 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
           <div className="row" style={{ justifyContent: 'space-between' }}><span className="body14 muted">{q.low}</span><span className="body14 muted">{q.high}</span></div>
         </div>
       )}
-      {q.kind === 'open' && <OpenAnswer key={q.id} q={q} onChange={setValue} />}
+      {q.kind === 'open' && <AnswerField key={q.id} {...fieldProps(q.id)} onChange={setValue} />}
       {q.kind === 'parts' && q.parts.map((part, n) => (
         <div key={part.id} className="stack gap12 test-part">
           <p className="h6">{part.prompt}</p>
           <VisualFor v={part.visual} />
-          <OpenAnswer q={part} onChange={(a) => setValue((prev: unknown) => ({ ...((prev as Record<string, unknown>) ?? {}), [part.id]: a }))} />
+          <AnswerField {...fieldProps(part.id)} onChange={(a) => setValue((prev: unknown) => ({ ...((prev as Record<string, unknown>) ?? {}), [part.id]: a }))} />
           {n < q.parts.length - 1 && <div className="divider" />}
         </div>
       ))}
