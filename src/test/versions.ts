@@ -4,6 +4,6 @@
  */
 export const VERSIONS: Record<string, string> = {
   v1: 'Original prototype',
-  v2: 'Updated copy and order for shortcuts on home',
+  v2: 'Updated copy and order for shortcuts on home + new club card',
 }
 export const CURRENT_VERSION = 'v2'
