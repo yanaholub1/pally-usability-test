@@ -93,10 +93,17 @@ export function decisions(evs: Ev[]) {
   }
   return d
 }
+/** A task restarted after a page reload is recorded as task1-r1, task1-r2…: use the last attempt */
 export function taskSpan(evs: Ev[], seg: 'task1' | 'task2') {
-  const start = evs.find((e) => e.type === 'task_start' && e.target === seg)
-  const end = evs.find((e) => e.type === 'task_end' && e.target === seg)
-  return { start: start?.t_ms ?? null, end: end?.t_ms ?? null, how: (end?.data?.how as string | undefined) ?? (start ? 'left early' : null) }
+  const isSeg = (t: string | null) => t === seg || !!t?.startsWith(`${seg}-r`)
+  const starts = evs.filter((e) => e.type === 'task_start' && isSeg(e.target))
+  const start = starts[starts.length - 1]
+  const end = start ? evs.find((e) => e.type === 'task_end' && e.target === start.target && e.t_ms >= start.t_ms) : undefined
+  return {
+    start: start?.t_ms ?? null, end: end?.t_ms ?? null,
+    how: (end?.data?.how as string | undefined) ?? (start ? 'left early' : null),
+    segment: start?.target ?? seg, attempts: starts.length,
+  }
 }
 
 export async function loadOverview(): Promise<Summary[]> {

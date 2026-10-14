@@ -14,7 +14,13 @@ export type LogEvent = {
 
 type Sink = (e: LogEvent) => void
 
-const startedAt = performance.now()
+// Time zero for t_ms. A test session keeps the same zero across a page reload (saved per tab),
+// so events from before and after a refresh stay in order.
+const epoch = (() => {
+  try { const v = sessionStorage.getItem('pally-t0'); if (v) return Number(v) } catch { /* no storage */ }
+  return Date.now()
+})()
+export function persistLogEpoch() { try { sessionStorage.setItem('pally-t0', String(epoch)) } catch { /* no storage */ } }
 const buffer: LogEvent[] = []
 const sinks = new Set<Sink>()
 let currentScreen = 'unknown'
@@ -34,7 +40,7 @@ export function track(type: string, target?: string, data?: Record<string, unkno
     data = { ...data, x: lastPointer.x, y: lastPointer.y, w: lastPointer.w, h: lastPointer.h }
   }
   const e: LogEvent = {
-    t_ms: Math.round(performance.now() - startedAt),
+    t_ms: Date.now() - epoch,
     client_ts: new Date().toISOString(),
     type,
     screen: currentScreen,
@@ -62,5 +68,5 @@ export function getBufferedEvents() {
 }
 
 export function msSinceStart() {
-  return Math.round(performance.now() - startedAt)
+  return Date.now() - epoch
 }

@@ -351,6 +351,7 @@ const screenName = (s: string | null) => (s ? SCREEN_NAMES[s] ?? s : '')
 
 function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'task2'; title: string; summary?: ReactNode }) {
   const span = taskSpan(d.events, seg)
+  const segName = span.segment // the attempt shown (after a reload: task1-r1…)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [now, setNow] = useState<number>(-1) // audio seconds
   const [hasAudio, setHasAudio] = useState<boolean | null>(null)
@@ -359,21 +360,21 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
 
   // Where the recording starts and when the mic was paused, to turn event times into audio times
   const startMs = useMemo(() => {
-    const rows = d.recs.filter((r) => r.segment === seg)
+    const rows = d.recs.filter((r) => r.segment === segName)
     if (rows.length) return Math.min(...rows.map((r) => r.start_ms))
-    return d.events.find((e) => e.type === 'recording_start' && e.target === seg)?.t_ms ?? span.start ?? 0
-  }, [d, seg, span.start])
+    return d.events.find((e) => e.type === 'recording_start' && e.target === segName)?.t_ms ?? span.start ?? 0
+  }, [d, segName, span.start])
   const pauses = useMemo(() => {
     const out: [number, number][] = []
     let open: number | null = null
     for (const e of d.events) {
-      if (e.target !== seg) continue
+      if (e.target !== segName) continue
       if (e.type === 'recording_paused') open = e.t_ms
       if (e.type === 'recording_resumed' && open != null) { out.push([open, e.t_ms]); open = null }
     }
     if (open != null) out.push([open, Number.MAX_SAFE_INTEGER])
     return out
-  }, [d, seg])
+  }, [d, segName])
   const toAudio = (t: number) => {
     let off = t - startMs
     for (const [a, b] of pauses) { if (t > b) off -= b - a; else if (t > a) off -= t - a }
@@ -403,8 +404,8 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
         case 'profile_close': out.push({ ...base, kind: 'profile', text: <>Closed profile after {mmss(Number(e.data?.dwell_ms ?? 0) / 1000)}</> }); break
         case 'profile_tab': out.push({ ...base, kind: 'profile', text: <>Profile tab: {e.target?.split(':')[1]}</> }); break
         case 'milestone': out.push({ ...base, kind: 'milestone', text: <>★ {e.target}</> }); break
-        case 'recording_paused': if (e.target === seg) out.push({ ...base, kind: 'mic', text: <>Mic paused</> }); break
-        case 'recording_resumed': if (e.target === seg) out.push({ ...base, kind: 'mic', text: <>Mic back on</> }); break
+        case 'recording_paused': if (e.target === segName) out.push({ ...base, kind: 'mic', text: <>Mic paused</> }); break
+        case 'recording_resumed': if (e.target === segName) out.push({ ...base, kind: 'mic', text: <>Mic back on</> }); break
         case 'task_end': out.push({ ...base, kind: 'end', text: <>Task ended: {String(e.data?.how)}</> }); break
         case 'config_change': {
           const txt = describeConfig(e.data)
@@ -497,10 +498,11 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
       <p className="rs-muted">
         {span.how === 'completed' ? 'Completed' : span.how === 'skipped' ? 'Moved on via “I’m stuck”' : span.how} in {dur(span.end != null ? span.end - span.start : null)} · {items.filter((i) => i.kind === 'dead').length} taps on nothing
       </p>
+      {span.attempts > 1 && <p className="rs-banner rs-small">The page reloaded during this task, so it started again. This shows the attempt after the reload; the earlier part is in the zip download ({fileLabel(d.label)}-{seg}-earlier-attempt).</p>}
       {summary}
       <div className="rs-task">
         <div className="rs-stack rs-task__main">
-          <AudioFile pid={d.p.id} segment={seg} name={`${fileLabel(d.label)}-${seg}`} audioRef={audioRef} onTime={setNow} onBlob={setHasAudio} />
+          <AudioFile pid={d.p.id} segment={segName} name={`${fileLabel(d.label)}-${seg}`} audioRef={audioRef} onTime={setNow} onBlob={setHasAudio} />
           {hasAudio === false && (
             <div className="rs-silent">
               <button className="rs-btn rs-btn--sm" onClick={() => { if (!silentPlaying && now >= endAudio - 0.05) setNow(0); setSilentPlaying(!silentPlaying) }}>{silentPlaying ? 'Pause' : 'Play'}</button>
@@ -570,8 +572,15 @@ async function addParticipantToZip(zip: JSZip, d: Detail) {
   const L = fileLabel(d.label)
   const lines: string[] = [`${d.label} · ${fmtDate(d.p.created_at)} · ${deviceOf(d.p.user_agent)} · ${d.p.mode}`, '']
   for (const seg of ['task1', 'task2'] as const) {
-    const b = await loadAudio(d.p.id, seg).catch(() => null)
+    const last = taskSpan(d.events, seg).segment
+    const b = await loadAudio(d.p.id, last).catch(() => null)
     if (b) zip.file(`${L}-${seg}.${extOf(b)}`, b)
+    // Attempts cut short by a page reload
+    const earlier = [...new Set(d.events.filter((e) => e.type === 'task_start' && (e.target === seg || e.target?.startsWith(`${seg}-r`)) && e.target !== last).map((e) => e.target!))]
+    for (const [k, name] of earlier.entries()) {
+      const eb = await loadAudio(d.p.id, name).catch(() => null)
+      if (eb) zip.file(`${L}-${seg}-earlier-attempt-${k + 1}.${extOf(eb)}`, eb)
+    }
     const span = taskSpan(d.events, seg)
     lines.push(`${seg}: ${span.how ?? 'not reached'} ${span.start != null && span.end != null ? dur(span.end - span.start) : ''}`)
     if (d.notes[seg]) lines.push(`  Transcript: ${d.notes[seg]}`)

@@ -581,3 +581,9 @@ p { margin: 0; }
 
 .test-badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; }
 .test-part .divider { margin-top: 12px; }
+
+/* Usability test: the document never scrolls (inner areas do), so pull-to-refresh can't trigger */
+@media (max-width: 520px), (max-height: 760px) and (pointer: coarse) {
+  html.test-root, html.test-root body { position: fixed; inset: 0; overflow: hidden; overscroll-behavior: none; }
+}
+html.test-root .test-page__scroll, html.test-root .screen__scroll { overscroll-behavior: contain; }

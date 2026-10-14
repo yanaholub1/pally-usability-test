@@ -7,12 +7,13 @@ import { defaultConfig, type MatchConfig } from '../state'
 import { ABOUT_YOU, BETWEEN, TASK_1, TASK_2, finalQuestions, type Question, type Visual } from './content'
 import { Segment, hasMic, micSupported, requestMic } from './recorder'
 import { AnswerField, type Answer } from './AnswerField'
-import { saveAnswer, startSession } from './session'
+import { loadSaved, save } from './resume'
+import { saveAnswer, startSession, resumeSession } from './session'
 
 /** Promised on the consent screen: audio is deleted this many days after the session (transcripts are kept) */
 const AUDIO_KEPT_DAYS = 14
 
-type Step = 'welcome' | 'consent' | 'about' | 'thinkaloud' | 'task1-intro' | 'task1' | 'between' | 'task2-intro' | 'task2' | 'final' | 'thanks'
+type Step = 'welcome' | 'resume' | 'consent' | 'about' | 'thinkaloud' | 'task1-intro' | 'task1' | 'between' | 'task2-intro' | 'task2' | 'final' | 'thanks'
 const mode = ((): 'unmoderated' | 'moderated' | 'pilot' => {
   const m = new URLSearchParams(location.search).get('mode')
   return m === 'moderated' || m === 'pilot' ? m : 'unmoderated'
@@ -60,8 +61,9 @@ function Page({ children, footer, progress }: { children: ReactNode; footer: Rea
 
 /* ───────── Answers: see AnswerField.tsx ───────── */
 
-function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { questions: Question[]; onDone: () => void; progressFrom: number; progressTo: number; intro?: ReactNode }) {
-  const [i, setI] = useState(0)
+function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro, resumeAt, onIndex }: { questions: Question[]; onDone: () => void; progressFrom: number; progressTo: number; intro?: ReactNode; resumeAt?: number; onIndex?: (i: number) => void }) {
+  const [i, setI] = useState(() => Math.min(resumeAt ?? 0, questions.length - 1))
+  useEffect(() => { onIndex?.(i) }, [i]) // eslint-disable-line react-hooks/exhaustive-deps
   const q = questions[i]
   const [value, setValue] = useState<unknown>(null)
   const [other, setOther] = useState('')
@@ -307,14 +309,41 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
 
 /* ───────── The whole test ───────── */
 export default function TestApp() {
-  const [step, setStep] = useState<Step>('welcome')
+  // A refresh mid-test (pull-to-refresh, reload button) resumes the same session instead of starting over
+  const [saved] = useState(() => {
+    const sv = loadSaved()
+    if (sv?.step && sv.step !== 'thanks') save({ reloads: (sv.reloads ?? 0) + 1 })
+    return sv
+  })
+  const reloads = saved?.step && saved.step !== 'thanks' ? (saved.reloads ?? 0) + 1 : 0
+  const [step, setStep] = useState<Step>(() => (saved?.step === 'thanks' ? 'thanks' : saved?.step && saved.step !== 'consent' ? 'resume' : 'welcome'))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown')
-  const config = useRef<MatchConfig>({ ...defaultConfig })
-  const task1Done = useRef(false)
+  const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>(saved?.mic ?? 'unknown')
+  const config = useRef<MatchConfig>({ ...defaultConfig, ...saved?.config })
+  const task1Done = useRef(saved?.task1Done ?? false)
   // Did they open anyone's profile in task 2? If not, the final questions skip the profile ones.
-  const profilesOpened = useRef(0)
+  const profilesOpened = useRef(saved?.profilesOpened ?? 0)
+  const qIndex = useRef<Record<string, number>>(saved?.qIndex ?? {})
+  const persist = () => save({ step, mic, config: config.current, task1Done: task1Done.current, profilesOpened: profilesOpened.current, qIndex: qIndex.current })
+  const flowIndex = (key: string) => ({ resumeAt: qIndex.current[key] ?? 0, onIndex: (n: number) => { qIndex.current[key] = n; save({ qIndex: qIndex.current }) } })
+  // Segment names must be new after a reload (the earlier recording's files already exist)
+  const seg = (name: string) => (reloads ? `${name}-r${reloads}` : name)
+
+  useEffect(() => { if (!['welcome', 'consent', 'resume'].includes(step)) persist() }, [step, mic]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mid-test, ask before leaving or reloading (desktop and Android show a confirm; iOS ignores this)
+  useEffect(() => {
+    if (['welcome', 'thanks'].includes(step)) return
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    addEventListener('beforeunload', warn)
+    return () => removeEventListener('beforeunload', warn)
+  }, [step])
+  // The page itself never scrolls (only its inner areas), which stops pull-to-refresh on phones
+  useEffect(() => {
+    document.documentElement.classList.add('test-root')
+    return () => document.documentElement.classList.remove('test-root')
+  }, [])
   useEffect(() => {
     if (step !== 'task2') return
     const off = addSink((e) => { if (e.type === 'profile_open' && e.target !== 'me') profilesOpened.current++ })
@@ -324,6 +353,27 @@ export default function TestApp() {
   useEffect(() => { setCurrentScreen(`test:${step}`); track('test_step', step); window.scrollTo(0, 0) }, [step])
 
   const go = (s: Step) => setStep(s)
+
+  if (step === 'resume') {
+    const target = (saved?.step === 'task1' ? 'task1-intro' : saved?.step === 'task2' ? 'task2-intro' : saved?.step ?? 'about') as Step
+    const inTask = saved?.step === 'task1' || saved?.step === 'task2'
+    const resume = async () => {
+      setBusy(true)
+      resumeSession()
+      track('test_resumed', saved?.step, { reloads })
+      // The microphone has to be switched on again after a reload
+      if (saved?.mic === 'granted') setMic((await requestMic()) ? 'granted' : 'denied')
+      setBusy(false)
+      go(target)
+    }
+    return (
+      <Page footer={<Button size="lg" disabled={busy} trackId="test:resume" onClick={() => void resume()}>{busy ? 'One moment…' : 'Carry on'}</Button>}>
+        <h1 className="h2 test-title">Welcome back</h1>
+        <p className="body16">The page reloaded, but everything you’ve done so far is saved. You can carry on where you left off{inTask ? ': the task will start again from the beginning' : ''}.</p>
+        <p className="body16 muted">Tip: avoid pulling the page down or refreshing until you’re done.</p>
+      </Page>
+    )
+  }
 
   if (step === 'welcome') return (
     <Page footer={<Button size="lg" trackId="test:start" onClick={() => go('consent')}>Start</Button>}>
@@ -372,7 +422,7 @@ export default function TestApp() {
   )
 
   if (step === 'about') return (
-    <QuestionFlow questions={ABOUT_YOU} progressFrom={0.05} progressTo={0.15} onDone={() => go('thinkaloud')}
+    <QuestionFlow {...flowIndex('about')} questions={ABOUT_YOU} progressFrom={0.05} progressTo={0.15} onDone={() => go('thinkaloud')}
       intro={<p className="h5" style={{ marginBottom: 4 }}>First, a little about you</p>} />
   )
 
@@ -402,12 +452,12 @@ export default function TestApp() {
   )
 
   if (step === 'task1') return (
-    <TaskView thinkAloud={mic === 'granted'} task={TASK_1} segment="task1" start="home" finishOn={['task1_complete']}
-      onConfig={(c) => { config.current = c }}
-      onDone={(how) => { task1Done.current = how === 'completed'; go('between') }} />
+    <TaskView thinkAloud={mic === 'granted'} task={TASK_1} segment={seg('task1')} start="home" finishOn={['task1_complete']}
+      onConfig={(c) => { config.current = c; save({ config: c }) }}
+      onDone={(how) => { task1Done.current = how === 'completed'; save({ task1Done: task1Done.current }); go('between') }} />
   )
 
-  if (step === 'between') return <QuestionFlow questions={BETWEEN} progressFrom={0.45} progressTo={0.55} onDone={() => go('task2-intro')} />
+  if (step === 'between') return <QuestionFlow {...flowIndex('between')} questions={BETWEEN} progressFrom={0.45} progressTo={0.55} onDone={() => go('task2-intro')} />
 
   if (step === 'task2-intro') return (
     <Page progress={0.55} footer={<Button size="lg" trackId="test:task2:begin" onClick={() => go('task2')}>Start task 2</Button>}>
@@ -422,10 +472,10 @@ export default function TestApp() {
     // Task 2 shows the participant's own match from Task 1 (or a ready-made one if they moved on early)
     const c = config.current
     const cfg: Partial<MatchConfig> = task1Done.current && c.time && c.courtId ? c : { ...c, time: c.time ?? '18:30', courtId: c.courtId ?? 'c1', gender: c.gender ?? 'any' }
-    return <TaskView thinkAloud={mic === 'granted'} task={TASK_2} segment="task2" start="homeMatch" initialConfig={cfg} finishOn={['all_requests_decided', 'match_full']} onDone={() => go('final')} />
+    return <TaskView thinkAloud={mic === 'granted'} task={TASK_2} segment={seg('task2')} start="homeMatch" initialConfig={cfg} finishOn={['all_requests_decided', 'match_full']} onDone={() => go('final')} />
   }
 
-  if (step === 'final') return <QuestionFlow questions={finalQuestions(profilesOpened.current > 0)} progressFrom={0.8} progressTo={1} onDone={() => { saveAnswer('completed', { at: new Date().toISOString() }); go('thanks') }} intro={<p className="h5" style={{ marginBottom: 4 }}>Last few questions</p>} />
+  if (step === 'final') return <QuestionFlow {...flowIndex('final')} questions={finalQuestions(profilesOpened.current > 0)} progressFrom={0.8} progressTo={1} onDone={() => { saveAnswer('completed', { at: new Date().toISOString() }); go('thanks') }} intro={<p className="h5" style={{ marginBottom: 4 }}>Last few questions</p>} />
 
   return (
     <Page progress={1} footer={<p className="body14 muted" style={{ textAlign: 'center' }}>You can close this page now.</p>}>

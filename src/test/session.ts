@@ -2,10 +2,12 @@
  * One test session = one participant row. Everything else (events, answers, recordings) hangs off its id.
  * Writes are queued and retried so a flaky connection never loses data or blocks the participant.
  */
-import { addSink, type LogEvent } from '../log'
+import { addSink, persistLogEpoch, type LogEvent } from '../log'
+import { loadSaved, save } from './resume'
 import { SUPABASE_KEY, SUPABASE_URL, supabase } from './supabase'
 
-export const participantId: string = crypto.randomUUID()
+// After a page reload in the same tab, keep the same participant (see resume.ts)
+export const participantId: string = loadSaved()?.pid ?? crypto.randomUUID()
 let started = false
 
 type Job = { table: string; rows: Record<string, unknown>[]; tries: number }
@@ -77,6 +79,18 @@ export async function startSession(mode: 'unmoderated' | 'moderated' | 'pilot') 
     user_agent: navigator.userAgent.slice(0, 400), viewport: `${innerWidth}x${innerHeight}@${devicePixelRatio}`,
   })
   if (error) throw error
+  persistLogEpoch()
+  save({ pid: participantId, mode })
+  attach()
+}
+
+/** After a reload: the participant row already exists, just start sending again */
+export function resumeSession() {
+  if (started) return
+  attach()
+}
+
+function attach() {
   started = true
   addSink(onEvent)
   addEventListener('pagehide', flushOnExit)
