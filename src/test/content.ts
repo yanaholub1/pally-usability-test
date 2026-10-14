@@ -22,7 +22,7 @@ export const TASK_1 = {
   label: 'Task 1 of 2',
   short: 'Set up a match',
   // A blank line starts a new paragraph
-  text: 'Imagine you want to set up a match and find players to play with. Go ahead and set up the match.\n\nIn this example, the app only lets you choose the settings where you’ll review and admit players yourself.',
+  text: 'Imagine you want to set up a match and find players to play with. **Go ahead and set up the match.**\n\nIn this example, the app only lets you choose the settings where you’ll review and admit players yourself.',
 }
 
 export const BETWEEN: Question[] = [
