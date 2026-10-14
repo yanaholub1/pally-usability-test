@@ -99,26 +99,46 @@ function VoiceAnswer({ qid, onChange }: { qid: string; onChange: (a: Answer | nu
 }
 
 function OpenAnswer({ q, onChange }: { q: { id: string }; onChange: (a: Answer | null) => void }) {
-  const voiceOk = hasMic()
+  // Voice is offered to everyone whose browser can record — also people who chose "type" at the start.
+  // Mic permission is asked the first time they pick "Record voice" (that tap is the user gesture browsers need).
+  const canRecord = micSupported()
   const [how, setHow] = useState<'text' | 'voice'>('text')
   const [text, setText] = useState('')
+  const [micState, setMicState] = useState<'ok' | 'asking' | 'denied'>(hasMic() ? 'ok' : 'asking')
+  const pick = async (m: 'text' | 'voice') => {
+    setHow(m)
+    onChange(m === 'text' && text.trim() ? { mode: 'text', text: text.trim() } : null)
+    if (m === 'voice' && !hasMic()) {
+      track('mic_requested_for_answer', q.id)
+      setMicState((await requestMic()) ? 'ok' : 'denied')
+    }
+  }
   return (
     <div className="stack gap16">
-      <div className="answer-toggle" role="tablist" aria-label="How do you want to answer?">
-        {(['text', 'voice'] as const).map((m) => (
-          <TButton key={m} role="tab" aria-selected={how === m} className={how === m ? 'on' : ''} disabled={m === 'voice' && !voiceOk}
-            trackId={`answer:${q.id}:mode:${m}`} onClick={() => { setHow(m); onChange(m === 'text' && text.trim() ? { mode: 'text', text: text.trim() } : null) }}>
-            <Icon name={m === 'text' ? 'edit' : 'mic'} size={18} /> {m === 'text' ? 'Type' : 'Record voice'}
-          </TButton>
-        ))}
-      </div>
+      {canRecord && (
+        <div className="answer-toggle" role="tablist" aria-label="How do you want to answer?">
+          {(['text', 'voice'] as const).map((m) => (
+            <TButton key={m} role="tab" aria-selected={how === m} className={how === m ? 'on' : ''}
+              trackId={`answer:${q.id}:mode:${m}`} onClick={() => void pick(m)}>
+              <Icon name={m === 'text' ? 'edit' : 'mic'} size={18} /> {m === 'text' ? 'Type' : 'Record voice'}
+            </TButton>
+          ))}
+        </div>
+      )}
       {how === 'text' ? (
         <textarea className="answer-text" rows={5} placeholder="Type your answer…" value={text}
           onChange={(e) => { setText(e.target.value); onChange(e.target.value.trim() ? { mode: 'text', text: e.target.value.trim() } : null) }} />
-      ) : (
+      ) : hasMic() ? (
         <VoiceAnswer qid={q.id} onChange={onChange} />
+      ) : micState === 'denied' ? (
+        <div className="stack gap12" style={{ alignItems: 'center', textAlign: 'center' }}>
+          <p className="body14 muted">We couldn’t use your microphone. Allow microphone access for this site in your browser settings and try again, or type your answer instead.</p>
+          <TButton className="link" trackId={`answer:${q.id}:mic-retry`} onClick={() => void pick('voice')}>Try again</TButton>
+        </div>
+      ) : (
+        <p className="body14 muted" style={{ textAlign: 'center' }}>Allow microphone access to record your answer…</p>
       )}
-      {!voiceOk && <p className="body14 muted">Voice answers need microphone access. You can type instead.</p>}
+      {!canRecord && <p className="body14 muted">Your browser can’t record audio, so please type your answer.</p>}
     </div>
   )
 }
@@ -241,7 +261,8 @@ function VisualFor({ v }: { v: Visual }) {
 }
 
 /* ───────── Tasks ───────── */
-function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onDone }: {
+function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onDone, thinkAloud }: {
+  thinkAloud: boolean
   task: typeof TASK_1; segment: string; start: 'home' | 'homeMatch'; initialConfig?: Partial<MatchConfig>
   finishOn: string[]; onConfig?: (c: MatchConfig) => void; onDone: (how: 'completed' | 'skipped') => void
 }) {
@@ -255,12 +276,13 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
   useEffect(() => {
     document.documentElement.classList.add('in-task')
     track('task_start', segment)
-    if (hasMic()) {
+    // Only people who agreed to think out loud are recorded during tasks (granting the mic later for one answer doesn't count)
+    if (thinkAloud && hasMic()) {
       const s = new Segment(segment)
       if (s.start()) { rec.current = s; setRecording('on') }
     }
     return () => { document.documentElement.classList.remove('in-task'); void rec.current?.stop() }
-  }, [segment])
+  }, [segment]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const end = (how: 'completed' | 'skipped') => {
     if (doneRef.current) return
@@ -406,7 +428,7 @@ export default function TestApp() {
   )
 
   if (step === 'task1') return (
-    <TaskView task={TASK_1} segment="task1" start="home" finishOn={['task1_complete']}
+    <TaskView thinkAloud={mic === 'granted'} task={TASK_1} segment="task1" start="home" finishOn={['task1_complete']}
       onConfig={(c) => { config.current = c }}
       onDone={(how) => { task1Done.current = how === 'completed'; go('between') }} />
   )
@@ -426,7 +448,7 @@ export default function TestApp() {
     // Task 2 shows the participant's own match from Task 1 (or a ready-made one if they moved on early)
     const c = config.current
     const cfg: Partial<MatchConfig> = task1Done.current && c.time && c.courtId ? c : { ...c, time: c.time ?? '18:30', courtId: c.courtId ?? 'c1', gender: c.gender ?? 'any' }
-    return <TaskView task={TASK_2} segment="task2" start="homeMatch" initialConfig={cfg} finishOn={['all_requests_decided', 'match_full']} onDone={() => go('final')} />
+    return <TaskView thinkAloud={mic === 'granted'} task={TASK_2} segment="task2" start="homeMatch" initialConfig={cfg} finishOn={['all_requests_decided', 'match_full']} onDone={() => go('final')} />
   }
 
   if (step === 'final') return <QuestionFlow questions={FINAL} progressFrom={0.8} progressTo={1} onDone={() => { saveAnswer('completed', { at: new Date().toISOString() }); go('thanks') }} intro={<p className="h5" style={{ marginBottom: 4 }}>Last few questions</p>} />
