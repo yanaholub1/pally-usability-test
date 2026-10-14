@@ -62,3 +62,13 @@ export const FINAL: Question[] = [
   { id: 'final_confidence', kind: 'scale', title: 'How confident do you feel about who you’ll be playing with?', low: 'Not at all', high: 'Very' },
   { id: 'final_anything_else', kind: 'open', title: 'Anything else you’d change?', optional: true },
 ]
+
+/** Without opening any profile they never saw the profile, so skip the profile questions
+ *  and don't claim they saw the scores ("Players’ profiles show this score"). */
+export function finalQuestions(openedProfiles: boolean): Question[] {
+  if (openedProfiles) return FINAL
+  return FINAL
+    .filter((q) => q.id !== 'final_profile_helpful' && q.id !== 'final_profile_not_helpful')
+    .map((q) => (q.id === 'final_scores_1' ? { ...q, title: 'Players’ profiles show this score.' }
+      : q.id === 'final_scores_2' ? { ...q, title: 'And this one.' } : q))
+}

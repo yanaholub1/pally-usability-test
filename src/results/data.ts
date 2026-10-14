@@ -29,6 +29,13 @@ async function all<T>(build: (from: number, to: number) => PromiseLike<{ data: T
   }
 }
 
+/** Going Back can save a question again: keep the latest answer per participant + question */
+export function latest(answers: Answer[]) {
+  const m = new Map<string, Answer>()
+  for (const a of [...answers].sort((x, y) => x.created_at.localeCompare(y.created_at))) m.set(`${a.participant_id}|${a.question_id}`, a)
+  return [...m.values()]
+}
+
 /* ───────── Overview ───────── */
 const SUMMARY_TYPES = ['task_start', 'task_end', 'request_admitted', 'request_declined', 'request_undo', 'profile_open', 'consent_given', 'config_change', 'tap_dead']
 
@@ -100,8 +107,9 @@ export async function loadOverview(): Promise<Summary[]> {
     all<Ev>((a, b) => rs.from('events').select('participant_id, t_ms, client_ts, type, screen, target, data').in('type', SUMMARY_TYPES).order('t_ms').range(a, b)),
   ])
   const labels = labelsFor(ps)
+  const latestAnswers = latest(answers)
   return ps.map((p) => {
-    const a = answers.filter((x) => x.participant_id === p.id)
+    const a = latestAnswers.filter((x) => x.participant_id === p.id)
     const e = evs.filter((x) => x.participant_id === p.id)
     const r = recs.filter((x) => x.participant_id === p.id)
     const t1 = taskSpan(e, 'task1'), t2 = taskSpan(e, 'task2')
@@ -143,7 +151,7 @@ export async function loadDetail(id: string): Promise<Detail> {
   ])
   const p = ps.find((x) => x.id === id)
   if (!p) throw new Error('This session doesn’t exist (it may have been deleted).')
-  return { p, label: labelsFor(ps)[id], answers, events, recs, notes: Object.fromEntries(notes.map((n) => [n.key, n.text])) }
+  return { p, label: labelsFor(ps)[id], answers: latest(answers), events, recs, notes: Object.fromEntries(notes.map((n) => [n.key, n.text])) }
 }
 
 export async function saveNote(participant_id: string, key: string, text: string) {

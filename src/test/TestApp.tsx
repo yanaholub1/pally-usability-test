@@ -2,11 +2,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Prototype from '../App'
 import { Icon } from '../components/Icon'
 import { Badge, Button, ProgressRing, Smiley, TButton } from '../components/ui'
-import { setCurrentScreen, track } from '../log'
+import { addSink, setCurrentScreen, track } from '../log'
 import { defaultConfig, type MatchConfig } from '../state'
-import { ABOUT_YOU, BETWEEN, FINAL, TASK_1, TASK_2, type Question, type Visual } from './content'
+import { ABOUT_YOU, BETWEEN, TASK_1, TASK_2, finalQuestions, type Question, type Visual } from './content'
 import { Segment, hasMic, micSupported, requestMic } from './recorder'
-import { AnswerField } from './AnswerField'
+import { AnswerField, type Answer } from './AnswerField'
 import { saveAnswer, startSession } from './session'
 
 /** Promised on the consent screen: audio is deleted this many days after the session (transcripts are kept) */
@@ -70,8 +70,15 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
   const [saving, setSaving] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
   const savers = useRef<Record<string, (() => Promise<boolean>) | null>>({})
+  // Answers per question, so Back shows what they gave before
+  const memo = useRef<Record<string, { value: unknown; other: string }>>({})
+  // Restore the question's earlier answer in the same render it appears (fields read it when they mount)
+  const goTo = (n: number) => {
+    const m = memo.current[questions[n].id]
+    setValue(m?.value ?? null); setOther(m?.other ?? ''); setI(n)
+  }
   useEffect(() => {
-    setValue(null); setOther(''); setRecording([]); setSaving(false); setSaveFailed(false); savers.current = {}
+    setRecording([]); setSaving(false); setSaveFailed(false); savers.current = {}
     setCurrentScreen(`q:${q.id}`); track('question_view', q.id)
   }, [q.id])
   const fieldProps = (id: string) => ({
@@ -102,7 +109,8 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
       q.parts.forEach((part) => saveAnswer(part.id, answers[part.id] ?? { mode: 'skipped' }))
     } else saveAnswer(q.id, v)
     track('question_answered', q.id, { skipped })
-    if (i + 1 < questions.length) setI(i + 1)
+    memo.current[q.id] = { value: skipped ? null : value, other }
+    if (i + 1 < questions.length) goTo(i + 1)
     else onDone()
   }
   const ready = q.kind === 'multi'
@@ -111,6 +119,12 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
       ? q.parts.every((part) => !!(value as Record<string, unknown> | null)?.[part.id])
       : value !== null
   const progress = progressFrom + ((progressTo - progressFrom) * i) / questions.length
+  const back = () => {
+    if (i === 0 || saving || recording.length) return
+    memo.current[q.id] = { value, other } // keep what they'd started
+    track('question_back', q.id)
+    goTo(i - 1)
+  }
 
   return (
     <Page progress={progress} footer={
@@ -124,6 +138,11 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
       </div>
     }>
       {i === 0 && intro}
+      {i > 0 && (
+        <TButton className="test-back" trackId={`q:${q.id}:back`} disabled={saving || recording.length > 0} onClick={back}>
+          <Icon name="chevron-left" size={20} />Back
+        </TButton>
+      )}
       <p className="caption muted">Question {i + 1} of {questions.length}{q.kind === 'open' && q.optional ? ' · optional' : ''}</p>
       <h2 className="h3 test-title">{q.title}</h2>
       {'hint' in q && q.hint && <p className="body16 muted" style={{ marginTop: -8 }}>{q.hint}</p>}
@@ -160,12 +179,12 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
           <div className="row" style={{ justifyContent: 'space-between' }}><span className="body14 muted">{q.low}</span><span className="body14 muted">{q.high}</span></div>
         </div>
       )}
-      {q.kind === 'open' && <AnswerField key={q.id} {...fieldProps(q.id)} onChange={setValue} />}
+      {q.kind === 'open' && <AnswerField key={q.id} {...fieldProps(q.id)} initial={value as Answer | null} onChange={setValue} />}
       {q.kind === 'parts' && q.parts.map((part, n) => (
         <div key={part.id} className="stack gap12 test-part">
           <p className="h6">{part.prompt}</p>
           <VisualFor v={part.visual} />
-          <AnswerField {...fieldProps(part.id)} onChange={(a) => setValue((prev: unknown) => ({ ...((prev as Record<string, unknown>) ?? {}), [part.id]: a }))} />
+          <AnswerField key={part.id} {...fieldProps(part.id)} initial={((value as Record<string, Answer | null> | null) ?? {})[part.id] ?? null} onChange={(a) => setValue((prev: unknown) => ({ ...((prev as Record<string, unknown>) ?? {}), [part.id]: a }))} />
           {n < q.parts.length - 1 && <div className="divider" />}
         </div>
       ))}
@@ -184,6 +203,7 @@ function VisualFor({ v }: { v: Visual }) {
   )
   if (v === 'score-attendance') return (
     <div className="stack gap8">
+      <p className="h5">Attendance</p>
       <div className="score-card">
         <div className="grow stack gap16">
           <div className="stack gap4"><span className="score-card__value">92%</span><span className="score-card__caption">Matches attended on time</span></div>
@@ -195,6 +215,7 @@ function VisualFor({ v }: { v: Visual }) {
   )
   return (
     <div className="stack gap8">
+      <p className="h5">Sportsmanship</p>
       <div className="score-card">
         <div className="grow stack gap16">
           <div className="stack gap4"><span className="score-card__value">90%</span><span className="score-card__caption">Players would play with them again</span></div>
@@ -292,6 +313,13 @@ export default function TestApp() {
   const [mic, setMic] = useState<'unknown' | 'granted' | 'denied'>('unknown')
   const config = useRef<MatchConfig>({ ...defaultConfig })
   const task1Done = useRef(false)
+  // Did they open anyone's profile in task 2? If not, the final questions skip the profile ones.
+  const profilesOpened = useRef(0)
+  useEffect(() => {
+    if (step !== 'task2') return
+    const off = addSink((e) => { if (e.type === 'profile_open' && e.target !== 'me') profilesOpened.current++ })
+    return () => { off() }
+  }, [step])
 
   useEffect(() => { setCurrentScreen(`test:${step}`); track('test_step', step); window.scrollTo(0, 0) }, [step])
 
@@ -397,7 +425,7 @@ export default function TestApp() {
     return <TaskView thinkAloud={mic === 'granted'} task={TASK_2} segment="task2" start="homeMatch" initialConfig={cfg} finishOn={['all_requests_decided', 'match_full']} onDone={() => go('final')} />
   }
 
-  if (step === 'final') return <QuestionFlow questions={FINAL} progressFrom={0.8} progressTo={1} onDone={() => { saveAnswer('completed', { at: new Date().toISOString() }); go('thanks') }} intro={<p className="h5" style={{ marginBottom: 4 }}>Last few questions</p>} />
+  if (step === 'final') return <QuestionFlow questions={finalQuestions(profilesOpened.current > 0)} progressFrom={0.8} progressTo={1} onDone={() => { saveAnswer('completed', { at: new Date().toISOString() }); go('thanks') }} intro={<p className="h5" style={{ marginBottom: 4 }}>Last few questions</p>} />
 
   return (
     <Page progress={1} footer={<p className="body14 muted" style={{ textAlign: 'center' }}>You can close this page now.</p>}>

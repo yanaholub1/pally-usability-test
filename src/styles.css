@@ -532,6 +532,8 @@ p { margin: 0; }
 .notice--error > span:first-child { color: #bd2705; }
 .notice__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .notice__link { align-self: flex-start; height: 44px; font-weight: 600; font-size: 16px; line-height: 20px; color: var(--brand-500); }
+.test-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 2px; height: 32px; margin: -8px 0 -4px -6px; padding-right: 8px; font-weight: 500; font-size: 15px; color: var(--gray-700); }
+.test-back[aria-disabled="true"] { opacity: .4; }
 .test-caption { min-height: 20px; margin-bottom: -4px; text-align: center; font-size: 14px; line-height: 20px; color: var(--gray-700); }
 .test-caption:empty { min-height: 0; margin-bottom: -12px; }
 /* Dark toast (PROPOSED kit Toast Tone=Inverse) above the footer */

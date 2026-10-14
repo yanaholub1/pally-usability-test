@@ -20,6 +20,8 @@ const MAX_MS = 120_000
 const LIVE_BARS = 44
 const DONE_BARS = 34
 const takeCounts: Record<string, number> = {}
+/** Finished recordings by question, so going Back to a question shows its recording again */
+const recordedCache: Record<string, Recorded> = {}
 
 type Recorded = { take: Take; durationMs: number; url: string; bars: number[] }
 type Notice = null | 'denied' | 'blocked' | 'too-short' | 'empty' | 'save-failed'
@@ -36,8 +38,10 @@ function downsample(levels: number[], n: number) {
   })
 }
 
-export function AnswerField({ qid, onChange, onRecording, registerSave, saving }: {
+export function AnswerField({ qid, initial, onChange, onRecording, registerSave, saving }: {
   qid: string
+  /** The answer given earlier, when the participant comes Back to this question */
+  initial?: Answer | null
   onChange: (a: Answer | null) => void
   onRecording: (recording: boolean) => void
   /** Hands the parent a function that uploads this answer's audio when Next is tapped (null = nothing to upload) */
@@ -45,12 +49,13 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
   saving: boolean
 }) {
   const canRecord = micSupported()
-  const [mode, setMode] = useState<'text' | 'recording' | 'recorded'>('text')
-  const [text, setText] = useState('')
+  const restored = initial?.mode === 'voice' && recordedCache[qid]?.take.name === initial.segment ? recordedCache[qid] : null
+  const [mode, setMode] = useState<'text' | 'recording' | 'recorded'>(restored ? 'recorded' : 'text')
+  const [text, setText] = useState(initial?.mode === 'text' ? initial.text : '')
   const [focused, setFocused] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
   const [confirm, setConfirm] = useState<null | 'record' | 'retry'>(null)
-  const [cur, setCur] = useState<Recorded | null>(null)
+  const [cur, setCur] = useState<Recorded | null>(restored)
   const [deleted, setDeleted] = useState<Recorded | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [live, setLive] = useState<number[]>([])
@@ -84,6 +89,8 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
     return () => clearInterval(id)
   }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => { if (cur) recordedCache[qid] = cur }, [cur, qid])
+
   // Tell the parent what (if anything) to upload on Next
   useEffect(() => {
     if (mode === 'recorded' && cur) {
@@ -96,10 +103,10 @@ export function AnswerField({ qid, onChange, onRecording, registerSave, saving }
     } else registerSave(null)
   }, [mode, cur]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The Undo toast lasts ~5 s; after that the deleted recording is dropped for good
+  // The Undo toast lasts 4.7 s; after that the deleted recording is dropped for good
   useEffect(() => {
     if (!deleted) return
-    const id = setTimeout(() => { URL.revokeObjectURL(deleted.url); setDeleted(null) }, 5000)
+    const id = setTimeout(() => { URL.revokeObjectURL(deleted.url); setDeleted(null) }, 4700)
     return () => clearTimeout(id)
   }, [deleted])
 

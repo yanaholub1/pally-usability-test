@@ -17,7 +17,7 @@ export const motion = {
   profileEasing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
 
   // Join-request notification banner
-  bannerDelay: 3500, // how long after landing on Home the banner appears
+  bannerDelay: 3000, // how long after landing on Home the banner appears
   bannerDuration: 420,
   bannerEasing: 'cubic-bezier(0.18, 0.89, 0.32, 1.12)', // slight overshoot
   bannerAutoHide: 7000, // 0 = stays until tapped or swiped
