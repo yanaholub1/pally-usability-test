@@ -57,10 +57,12 @@ export function FindScreen() {
   const { push } = useApp()
   const [sheet, setSheet] = useState(true)
   const [choice, setChoice] = useState<'Matches' | 'Lessons' | 'Court' | 'Tournaments'>('Matches')
+  // The title follows what they chose: "Find matches" here; Courts opens its own "Find courts" page
+  const [shown, setShown] = useState<'Matches' | null>(null)
   return (
     <div className="screen">
       <div className="screen__scroll">
-        <TitleHeader title="Find activities" />
+        <TitleHeader title={shown === 'Matches' ? 'Find matches' : 'Find activities'} />
         <div className="stack gap16" style={{ padding: '8px 20px 120px' }}>
           <FindSearch
             trackPrefix="find"
@@ -100,11 +102,12 @@ export function FindScreen() {
       <Sheet open={sheet} onClose={() => setSheet(false)} title="Find or start an activity" trackId="find-sheet">
         <div className="stack gap8" role="radiogroup">
           {([['Matches', 'ball'], ['Lessons', 'hat'], ['Court', 'field'], ['Tournaments', 'trophy']] as const).map(([label, icon]) => (
-            <RadioCard key={label} title={label} icon={icon} selected={choice === label} onSelect={() => setChoice(label)} trackId={`find-sheet:${label}`} />
+            // Lessons and Tournaments aren't part of this test: shown but not selectable (taps are still logged)
+            <RadioCard key={label} title={label} icon={icon} selected={choice === label} disabled={label === 'Lessons' || label === 'Tournaments'} onSelect={() => setChoice(label)} trackId={`find-sheet:${label}`} />
           ))}
         </div>
         <div style={{ paddingTop: 24 }}>
-          <Button size="lg" trackId="find-sheet:see-results" onClick={() => { setSheet(false); if (choice === 'Court') setTimeout(() => push('bookCourt'), 200) }}>See results</Button>
+          <Button size="lg" trackId="find-sheet:see-results" onClick={() => { setSheet(false); if (choice === 'Court') setTimeout(() => push('bookCourt'), 200); else setShown('Matches') }}>See results</Button>
         </div>
       </Sheet>
     </div>
