@@ -524,7 +524,7 @@ export function BookedScreen() {
     <div className="screen">
       <div className="screen__scroll">
         {/* Figma "Court booked": close at 56, heart 62 below it, title +12, subtitle +4;
-            court lines (2 px white) start 24 px under the subtitle, vertical line at x≈82, so they move with the text */}
+            court lines (2 px white) start 24 px under the subtitle, vertical line at x≈82; the sheet overlaps them 24 px below the line */}
         <div className="brand-bg" style={{ position: 'relative', color: '#fff', padding: 'calc(var(--safe-top) + 8px) 20px 0', overflow: 'hidden' }}>
           <IconButton icon="close" label="Close" onClick={close} trackId="booked:close" />
           <div className="stack" style={{ alignItems: 'center', marginTop: 62, textAlign: 'center' }}>
@@ -532,7 +532,7 @@ export function BookedScreen() {
             <p className="h2" style={{ marginTop: 12, fontSize: 32, lineHeight: "40px", letterSpacing: "-0.96px" }}>Court booked</p>
             <p className="body16" style={{ marginTop: 4 }}>Your match is now visible to other players.</p>
           </div>
-          <div aria-hidden style={{ position: 'relative', margin: '24px -20px 0', height: 92, borderTop: '2px solid #fff' }}>
+          <div aria-hidden style={{ position: 'relative', margin: '24px -20px 0', height: 48, borderTop: '2px solid #fff' }}>
             <div style={{ position: 'absolute', left: 82, top: 0, bottom: 0, borderLeft: '2px solid #fff' }} />
           </div>
         </div>
@@ -547,11 +547,14 @@ export function BookedScreen() {
             title={`${fmt.long(d)} • ${config.time}`}
             lineup={[{ name: HOST.name, photo: HOST.photo, level: HOST.level.toFixed(1), you: true, id: 'me', onTap: () => openProfile('me') }, { available: true }, { available: true }, { available: true }]}
             location={`${club.name} • ${courts.find((c) => c.id === config.courtId)?.name ?? 'Court 1'}`}
-            action={<Button variant="secondary" icon="chat" trackId="booked:message">Message</Button>}
           />
+          {/* Figma: the buttons sit in the sheet, 16 px under the card and 16 px apart; Done and × both go home */}
+          <div className="stack gap16" style={{ marginTop: 4 }}>
+            <Button size="lg" icon="person-plus" trackId="booked:invite">Invite players</Button>
+            <Button size="lg" variant="ghost" trackId="booked:done" onClick={close}>Done</Button>
+          </div>
         </div>
       </div>
-      <BottomBar><Button size="lg" icon="person-plus" trackId="booked:invite">Invite players</Button></BottomBar>
     </div>
   )
 }

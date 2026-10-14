@@ -17,7 +17,8 @@ export function EventCard({
   date?: string
   lineup: LineupSlot[]
   location: string
-  action: ReactNode
+  /** Omit for no footer (e.g. the Court booked confirmation, where the card is read-only) */
+  action?: ReactNode
   /** Lineup layout (kit Lineup, Density=Full): 2 v 2 match, or a lead (coach) row above the players */
   layout?: 'match' | 'lead'
   trackId: string
@@ -56,10 +57,12 @@ export function EventCard({
         )}
       </div>
       {/* Kit footer: just the actions — Map (icon) + the main action, which fills the rest of the row */}
-      <div className="event-card__footer">
-        <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
-        <div className="event-card__action">{action}</div>
-      </div>
+      {action && (
+        <div className="event-card__footer">
+          <IconButton icon="map" label="Open map" variant="secondary" trackId={`${trackId}:map`} />
+          <div className="event-card__action">{action}</div>
+        </div>
+      )}
     </div>
   )
   // The whole card opens the event; taps on its own buttons (map, Join, See requests…) don't.
