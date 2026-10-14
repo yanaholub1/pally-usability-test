@@ -197,8 +197,8 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro }: { 
       {q.kind === 'open' && <OpenAnswer key={q.id} q={q} onChange={setValue} />}
       {q.kind === 'parts' && q.parts.map((part, n) => (
         <div key={part.id} className="stack gap12 test-part">
-          <VisualFor v={part.visual} />
           <p className="h6">{part.prompt}</p>
+          <VisualFor v={part.visual} />
           <OpenAnswer q={part} onChange={(a) => setValue((prev: unknown) => ({ ...((prev as Record<string, unknown>) ?? {}), [part.id]: a }))} />
           {n < q.parts.length - 1 && <div className="divider" />}
         </div>

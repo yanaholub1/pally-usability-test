@@ -43,7 +43,7 @@ export const FINAL: Question[] = [
     id: 'final_badges', kind: 'parts', title: 'On the requests, you saw labels like these. What do they tell you about a player?', hint: 'In your own words, there’s no right answer.',
     parts: [
       { id: 'final_badges_attendance', visual: 'badges-attendance', prompt: 'What do these labels tell you?' },
-      { id: 'final_badges_sportsmanship', visual: 'badges-sportsmanship', prompt: 'And these?' },
+      { id: 'final_badges_sportsmanship', visual: 'badges-sportsmanship', prompt: 'And what do these labels tell you?' },
     ],
   },
   {
