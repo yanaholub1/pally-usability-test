@@ -303,7 +303,7 @@ function AudioFile({ pid, segment, name, audioRef, onTime, onBlob }: {
     }
   }
   if (state === 'loading' || state === 'idle') return <p className="rs-muted rs-small">Loading audio…</p>
-  if (state === 'none') return <p className="rs-muted rs-small">No audio (deleted, or nothing was saved)</p>
+  if (state === 'none') return onBlob ? null : <p className="rs-muted rs-small">No audio (deleted, or nothing was saved)</p>
   if (state === 'error') return <p className="rs-error rs-small">Couldn’t load the audio. <button className="rs-link" onClick={load}>Try again</button></p>
   return (
     <div className="rs-row rs-audio">
@@ -467,9 +467,24 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
     if (frameReady) frameRef.current?.contentWindow?.postMessage({ type: 'pally-replay', state: replay.state }, location.origin)
   }, [frameReady, stateKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // No audio (typing-only sessions): a silent clock plays the timeline and replay like a video
+  const [silentPlaying, setSilentPlaying] = useState(false)
+  const [speed, setSpeed] = useState(1)
+  const endAudio = items.length ? Math.max(items[items.length - 1].audio, span.end != null ? toAudio(span.end) : 0) : 0
+  useEffect(() => {
+    if (!silentPlaying) return
+    const id = setInterval(() => setNow((n) => {
+      const next = Math.max(0, n) + 0.1 * speed
+      if (next >= endAudio) { setSilentPlaying(false); return endAudio }
+      return next
+    }), 100)
+    return () => clearInterval(id)
+  }, [silentPlaying, speed, endAudio])
+
   const seek = (it: Item) => {
     const a = audioRef.current
     if (a && hasAudio) { a.currentTime = Math.max(0, it.audio + 0.01); void a.play() }
+    else if (hasAudio === false) setSilentPlaying(true)
     setNow(it.audio)
   }
 
@@ -486,7 +501,15 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
       <div className="rs-task">
         <div className="rs-stack rs-task__main">
           <AudioFile pid={d.p.id} segment={seg} name={`${fileLabel(d.label)}-${seg}`} audioRef={audioRef} onTime={setNow} onBlob={setHasAudio} />
-          {hasAudio === false && <p className="rs-muted rs-small">No think-aloud audio for this task. The timeline still shows what they did; click a row to see the screen.</p>}
+          {hasAudio === false && (
+            <div className="rs-silent">
+              <button className="rs-btn rs-btn--sm" onClick={() => { if (!silentPlaying && now >= endAudio - 0.05) setNow(0); setSilentPlaying(!silentPlaying) }}>{silentPlaying ? 'Pause' : 'Play'}</button>
+              <span className="rs-silent__t">{mmss(Math.max(0, now))} / {mmss(endAudio)}</span>
+              <input type="range" min={0} max={endAudio || 1} step={0.1} value={Math.max(0, now)} onChange={(e) => setNow(Number(e.target.value))} aria-label="Position" />
+              <button className="rs-btn rs-btn--sm" onClick={() => setSpeed(speed === 1 ? 2 : speed === 2 ? 4 : 1)}>{speed}×</button>
+              <span className="rs-muted rs-small">No audio (typing only): plays what they did, in real time</span>
+            </div>
+          )}
           <ol ref={listRef} className="rs-timeline">
             {items.map((it, i) => (
               <li key={i} className={`rs-ev rs-ev--${it.kind} ${i === activeIdx ? 'on' : ''}`} onClick={() => seek(it)}>
@@ -495,7 +518,9 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
               </li>
             ))}
           </ol>
-          <NoteBox pid={d.p.id} k={seg} initial={d.notes[seg] ?? ''} placeholder="Paste the think-aloud transcript here…" />
+          {hasAudio !== false
+            ? <NoteBox pid={d.p.id} k={seg} initial={d.notes[seg] ?? ''} placeholder="Paste the think-aloud transcript here…" />
+            : <NoteBox pid={d.p.id} k={seg} initial={d.notes[seg] ?? ''} placeholder="Your notes on this task…" />}
         </div>
         <div className="rs-replay">
           <div className="rs-phone" style={{ width: 390 * scale, height: 760 * scale }}>
