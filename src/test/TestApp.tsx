@@ -8,6 +8,7 @@ import { ABOUT_YOU, BETWEEN, TASK_1, TASK_2, finalQuestions, type Question, type
 import { Segment, hasMic, micSupported, requestMic } from './recorder'
 import { AnswerField, type Answer } from './AnswerField'
 import { loadSaved, save } from './resume'
+import { CURRENT_VERSION } from './versions'
 import { saveAnswer, startSession, resumeSession } from './session'
 
 /** Promised on the consent screen: audio is deleted this many days after the session (transcripts are kept) */
@@ -308,9 +309,7 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
 }
 
 /* ───────── The whole test ───────── */
-/** Bump when the prototype changes between sessions, so results can be compared per design.
- *  v1: home tiles Matches/Courts · v2 (after P01): "Find your next game" with Join a match / Create a match */
-const PROTOTYPE_VERSION = 'v2'
+const PROTOTYPE_VERSION = CURRENT_VERSION // see versions.ts
 
 export default function TestApp() {
   // A refresh mid-test (pull-to-refresh, reload button) resumes the same session instead of starting over

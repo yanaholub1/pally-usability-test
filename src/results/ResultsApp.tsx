@@ -12,6 +12,7 @@ import {
   loadOverview, playerName, rs, saveNote, taskSpan, type Detail, type Ev, type Summary,
 } from './data'
 import { requestersFor } from '../data'
+import { VERSIONS } from '../test/versions'
 
 const AUDIO_KEPT_DAYS = 14
 const fmtDate = (s: string) => new Date(s).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -149,7 +150,7 @@ function Overview() {
           <tbody>
             {shown.map((r) => (
               <tr key={r.p.id} onClick={() => { location.hash = `p=${r.p.id}` }}>
-                <td><a href={`#p=${r.p.id}`}><b>{r.label}</b></a> <span className="rs-muted rs-small">{r.version}</span>{!r.completed && <span className="rs-tag rs-tag--warn">not finished</span>}</td>
+                <td><a href={`#p=${r.p.id}`}><b>{r.label}</b></a> <span className="rs-tag" title={VERSIONS[r.version] ?? ''}>{r.version}</span>{!r.completed && <span className="rs-tag rs-tag--warn">not finished</span>}</td>
                 <td>{fmtDate(r.p.created_at)}</td>
                 <td>{r.device}</td>
                 <td>{r.thinkAloud ? 'Think-aloud' : r.thinkAloud === false ? 'Typing' : '—'}</td>
@@ -164,6 +165,12 @@ function Overview() {
             {!shown.length && <tr><td colSpan={10} className="rs-muted">No sessions yet.</td></tr>}
           </tbody>
         </table>
+      </div>
+      <div className="rs-versions">
+        <p className="rs-small"><b>Prototype versions</b></p>
+        {Object.entries(VERSIONS).map(([v, desc]) => (
+          <p key={v} className="rs-small"><span className="rs-tag" style={{ marginLeft: 0, marginRight: 6 }}>{v}</span>{desc} · {(rows ?? []).filter((r) => !r.empty && r.version === v && (filter === 'all' || (filter === 'pilot' ? r.p.mode === 'pilot' : r.p.mode !== 'pilot'))).length} sessions</p>
+        ))}
       </div>
       <p className="rs-muted rs-small">Player key for task 2: {requestersFor('any').map((r) => `${r.id} ${r.status === 'New to Pally' ? 'new, no scores' : `attendance ${r.attendance}%, sportsmanship ${r.sportsmanship}%`}`).join(' · ')}. Names depend on the gender setting they chose.</p>
     </div>
@@ -188,6 +195,7 @@ function ParticipantPage({ id }: { id: string }) {
 
   const ans = (qid: string) => d.answers.find((a) => a.question_id === qid)?.value ?? null
   const opt = ans('think_aloud_opt_in')?.selected
+  const version = String(ans('prototype_version')?.selected ?? 'v1')
   const g = genderOf(d.events)
   const hasAudio = d.recs.length > 0
   const oldest = hasAudio ? d.recs.map((r) => r.created_at).sort()[0] : null
@@ -216,6 +224,7 @@ function ParticipantPage({ id }: { id: string }) {
           <h1>{d.label}</h1>
           <p className="rs-muted">
             {fmtDate(d.p.created_at)} · {deviceOf(d.p.user_agent)} · {d.p.viewport ?? ''} · {opt ? 'Thinking aloud' : opt === false ? 'Typing only' : 'Mic unknown'} · {d.p.mode}
+            <span className="rs-tag">{version}: {VERSIONS[version] ?? 'unknown version'}</span>
             {!d.answers.some((a) => a.question_id === 'completed') && <span className="rs-tag rs-tag--warn">not finished</span>}
           </p>
         </div>
@@ -570,7 +579,8 @@ function Task2Summary({ d, gender }: { d: Detail; gender: ReturnType<typeof gend
 /* ───────── Zip export ───────── */
 async function addParticipantToZip(zip: JSZip, d: Detail) {
   const L = fileLabel(d.label)
-  const lines: string[] = [`${d.label} · ${fmtDate(d.p.created_at)} · ${deviceOf(d.p.user_agent)} · ${d.p.mode}`, '']
+  const ver = String(d.answers.find((a) => a.question_id === 'prototype_version')?.value?.selected ?? 'v1')
+  const lines: string[] = [`${d.label} · ${fmtDate(d.p.created_at)} · ${deviceOf(d.p.user_agent)} · ${d.p.mode} · ${ver} (${VERSIONS[ver] ?? ''})`, '']
   for (const seg of ['task1', 'task2'] as const) {
     const last = taskSpan(d.events, seg).segment
     const b = await loadAudio(d.p.id, last).catch(() => null)
