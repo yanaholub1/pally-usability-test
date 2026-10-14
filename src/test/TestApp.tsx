@@ -17,6 +17,11 @@ const mode = ((): 'unmoderated' | 'moderated' | 'pilot' => {
   return m === 'moderated' || m === 'pilot' ? m : 'unmoderated'
 })()
 
+/** Renders **bold** segments in task copy */
+function rich(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => (part.startsWith('**') ? <b key={i}>{part.slice(2, -2)}</b> : part))
+}
+
 /* ───────── Layout shells ───────── */
 function Page({ children, footer, progress }: { children: ReactNode; footer: ReactNode; progress?: number }) {
   return (
@@ -283,7 +288,7 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
             ? <Button size="sm" trackId="taskbar:done" onClick={() => end('completed')}>Done</Button>
             : <TButton className="link task-bar__skip" trackId="taskbar:stuck" onClick={() => setConfirmSkip(true)}>I’m stuck</TButton>}
         </div>
-        {open && <p className="body14 task-bar__text">{task.text}</p>}
+        {open && <p className="body14 task-bar__text">{rich(task.text)}</p>}
         {finished && <p className="body14 task-bar__text">That’s everything. Tap <b>Done</b> when you’re ready to move on.</p>}
         {confirmSkip && (
           <div className="task-bar__confirm">
@@ -386,7 +391,7 @@ export default function TestApp() {
     <Page progress={0.2} footer={<Button size="lg" trackId="test:task1:begin" onClick={() => go('task1')}>Start task 1</Button>}>
       <p className="caption muted">{TASK_1.label}</p>
       <h1 className="h2 test-title">{TASK_1.short}</h1>
-      <p className="body18 test-task-text">{TASK_1.text}</p>
+      <p className="body18 test-task-text">{rich(TASK_1.text)}</p>
       <p className="body14 muted">You can reread this any time by tapping the task at the top of the screen.</p>
     </Page>
   )
@@ -402,8 +407,8 @@ export default function TestApp() {
   if (step === 'task2-intro') return (
     <Page progress={0.55} footer={<Button size="lg" trackId="test:task2:begin" onClick={() => go('task2')}>Start task 2</Button>}>
       <p className="caption muted">{TASK_2.label}</p>
-      <h1 className="h2 test-title">{TASK_2.short}</h1>
-      <p className="body18 test-task-text">{TASK_2.text}</p>
+      <h1 className="h2 test-title">Choose your players</h1>
+      <p className="body18 test-task-text">{rich(TASK_2.text)}</p>
       <p className="body14 muted">You’ll start on the home screen with your match booked.</p>
     </Page>
   )

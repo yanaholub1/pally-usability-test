@@ -27,8 +27,9 @@ export const BETWEEN: Question[] = [
 
 export const TASK_2 = {
   label: 'Task 2 of 2',
-  short: 'Choose your players',
-  text: 'A few people have asked to join your match. Decide who you’d like to play with.',
+  short: 'Choose 3 of 5 players',
+  // **…** shows in bold
+  text: 'Your match is booked, and people have started asking to join. **5 players want in, but there are only 3 spots.** Decide who you’d actually want on court with you, taking the time you’d take in real life. Afterwards, we’ll ask you about your choices.',
 }
 
 export const FINAL: Question[] = [
