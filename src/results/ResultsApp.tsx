@@ -149,7 +149,7 @@ function Overview() {
           <tbody>
             {shown.map((r) => (
               <tr key={r.p.id} onClick={() => { location.hash = `p=${r.p.id}` }}>
-                <td><a href={`#p=${r.p.id}`}><b>{r.label}</b></a>{!r.completed && <span className="rs-tag rs-tag--warn">not finished</span>}</td>
+                <td><a href={`#p=${r.p.id}`}><b>{r.label}</b></a> <span className="rs-muted rs-small">{r.version}</span>{!r.completed && <span className="rs-tag rs-tag--warn">not finished</span>}</td>
                 <td>{fmtDate(r.p.created_at)}</td>
                 <td>{r.device}</td>
                 <td>{r.thinkAloud ? 'Think-aloud' : r.thinkAloud === false ? 'Typing' : '—'}</td>

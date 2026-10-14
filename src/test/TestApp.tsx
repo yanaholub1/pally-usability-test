@@ -308,6 +308,10 @@ function TaskView({ task, segment, start, initialConfig, finishOn, onConfig, onD
 }
 
 /* ───────── The whole test ───────── */
+/** Bump when the prototype changes between sessions, so results can be compared per design.
+ *  v1: home tiles Matches/Courts · v2 (after P01): "Find your next game" with Join a match / Create a match */
+const PROTOTYPE_VERSION = 'v2'
+
 export default function TestApp() {
   // A refresh mid-test (pull-to-refresh, reload button) resumes the same session instead of starting over
   const [saved] = useState(() => {
@@ -394,6 +398,7 @@ export default function TestApp() {
       await startSession(mode)
       track('consent_given', mode, { think_aloud: thinkAloud })
       saveAnswer('think_aloud_opt_in', { selected: thinkAloud })
+      saveAnswer('prototype_version', { selected: PROTOTYPE_VERSION })
       const ok = thinkAloud && micSupported() ? await requestMic() : false
       setMic(ok ? 'granted' : 'denied')
       go('about')

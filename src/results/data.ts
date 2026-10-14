@@ -50,6 +50,7 @@ export type Summary = {
   profilesOpened: number
   deadTaps: number
   answers: number
+  version: string
   voiceAnswers: number
   audioFiles: number
   audioSince: string | null
@@ -136,7 +137,8 @@ export async function loadOverview(): Promise<Summary[]> {
       admitted: Object.entries(dec).filter(([, v]) => v === 'admitted').map(([id]) => `${playerName(id, g)} (${id})`),
       profilesOpened: t2evs.filter((x) => x.type === 'profile_open' && x.target !== 'me').length,
       deadTaps: e.filter((x) => x.type === 'tap_dead').length,
-      answers: a.filter((x) => !['think_aloud_opt_in', 'completed'].includes(x.question_id)).length,
+      answers: a.filter((x) => !['think_aloud_opt_in', 'completed', 'prototype_version'].includes(x.question_id)).length,
+      version: String(a.find((x) => x.question_id === 'prototype_version')?.value?.selected ?? 'v1'),
       voiceAnswers: a.filter((x) => x.value?.mode === 'voice').length,
       audioFiles: r.length,
       audioSince: r.length ? r.map((x) => x.created_at).sort()[0] : null,
