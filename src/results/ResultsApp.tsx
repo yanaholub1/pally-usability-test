@@ -110,6 +110,20 @@ function Overview() {
     .sort((a, b) => b.p.created_at.localeCompare(a.p.created_at))
   const due = shown.filter((r) => r.audioSince && daysSince(r.audioSince) >= AUDIO_KEPT_DAYS)
 
+  // Sessions where nobody answered anything (left at the start). Skips the last hour so a session
+  // that's still in progress can't be deleted by accident.
+  const noAnswers = (rows ?? []).filter((r) => (filter === 'all' || (filter === 'pilot' ? r.p.mode === 'pilot' : r.p.mode !== 'pilot'))
+    && r.answers === 0 && Date.now() - new Date(r.p.created_at).getTime() > 3_600_000)
+  const removeNoAnswers = async () => {
+    if (!confirm(`Delete ${noAnswers.length} session${noAnswers.length === 1 ? '' : 's'} with no answers (${noAnswers.map((r) => r.label).join(', ')})? Their taps and any audio are deleted too. This can’t be undone.`)) return
+    for (const [i, r] of noAnswers.entries()) {
+      setBusy(`Deleting ${i + 1} of ${noAnswers.length}…`)
+      await deleteSession(r.p.id)
+    }
+    setBusy('')
+    await load()
+  }
+
   const downloadAll = async () => {
     const zip = new JSZip()
     for (const r of shown) {
@@ -136,6 +150,12 @@ function Overview() {
         </div>
         <div className="rs-row">
           {busy && <span className="rs-muted">{busy}</span>}
+          {noAnswers.length > 0 && (
+            <button className="rs-btn rs-btn--ghost-danger" disabled={!!busy} title="Sessions older than an hour where no question was answered"
+              onClick={() => void removeNoAnswers().catch((e) => { setBusy(''); alert(e.message) })}>
+              Remove {noAnswers.length} with no answers
+            </button>
+          )}
           <button className="rs-btn" disabled={!!busy || !shown.length} onClick={() => void downloadAll().catch((e) => { setBusy(''); alert(e.message) })}>Download all ({shown.length}) as zip</button>
         </div>
       </div>
