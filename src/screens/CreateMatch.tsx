@@ -101,9 +101,10 @@ export function FindScreen() {
       <NavBar active="find" />
       <Sheet open={sheet} onClose={() => setSheet(false)} title="Find or start an activity" trackId="find-sheet">
         <div className="stack gap8" role="radiogroup">
-          {([['Matches', 'ball'], ['Lessons', 'hat'], ['Court', 'field'], ['Tournaments', 'trophy']] as const).map(([label, icon]) => (
+          {/* Same order and wording as the Home shortcuts: "Create a match" (booking a court) comes last */}
+          {([['Matches', 'Matches', 'ball'], ['Lessons', 'Lessons', 'hat'], ['Tournaments', 'Tournaments', 'trophy'], ['Court', 'Create a match', 'plus']] as const).map(([key, label, icon]) => (
             // Lessons and Tournaments aren't part of this test: shown but not selectable (taps are still logged)
-            <RadioCard key={label} title={label} icon={icon} selected={choice === label} disabled={label === 'Lessons' || label === 'Tournaments'} onSelect={() => setChoice(label)} trackId={`find-sheet:${label}`} />
+            <RadioCard key={key} title={label} icon={icon} selected={choice === key} disabled={key === 'Lessons' || key === 'Tournaments'} onSelect={() => setChoice(key)} trackId={`find-sheet:${key}`} />
           ))}
         </div>
         <div style={{ paddingTop: 24 }}>
