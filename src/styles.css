@@ -595,6 +595,10 @@ p { margin: 0; }
 }
 
 .test-badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; border: 1px solid var(--gray-300); border-radius: 16px; background: #fff; }
+.test-badges--rows { flex-direction: column; gap: 0; padding: 0 16px; }
+.test-badges__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; }
+.test-badges__row + .test-badges__row { border-top: 1px solid var(--gray-100); }
+.test-badges__who { font-size: 14px; line-height: 20px; color: var(--gray-700); }
 .test-part .divider { margin-top: 12px; }
 
 /* Usability test: the document never scrolls (inner areas do), so pull-to-refresh can't trigger */

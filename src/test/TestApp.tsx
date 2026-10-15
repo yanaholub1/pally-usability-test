@@ -198,12 +198,15 @@ function QuestionFlow({ questions, onDone, progressFrom, progressTo, intro, resu
 /** What each answer field refers to: the labels as on join-request cards (no captions),
  *  or the Reputation cards exactly as on a player's profile (Figma: ScoreCard). */
 function VisualFor({ v }: { v: Visual }) {
-  if (v === 'badges-attendance') return (
-    <div className="test-badges" aria-label="Labels from join requests"><Badge icon="badge">Highly reliable</Badge><Badge icon="badge">Sometimes cancels late</Badge></div>
+  // Each label belongs to a different player: shown on separate rows so they aren't read as one person's labels
+  const labelRows = (icon: string, a: string, b: string) => (
+    <div className="test-badges test-badges--rows" aria-label="Labels from two different join requests">
+      <div className="test-badges__row"><span className="test-badges__who">One player</span><Badge icon={icon}>{a}</Badge></div>
+      <div className="test-badges__row"><span className="test-badges__who">Another player</span><Badge icon={icon}>{b}</Badge></div>
+    </div>
   )
-  if (v === 'badges-sportsmanship') return (
-    <div className="test-badges" aria-label="Labels from join requests"><Badge icon="handshake">Great teammate</Badge><Badge icon="handshake">Mixed feedback</Badge></div>
-  )
+  if (v === 'badges-attendance') return labelRows('badge', 'Highly reliable', 'Sometimes cancels late')
+  if (v === 'badges-sportsmanship') return labelRows('handshake', 'Great teammate', 'Mixed feedback')
   if (v === 'score-attendance') return (
     <div className="stack gap8">
       <p className="h5">Attendance</p>

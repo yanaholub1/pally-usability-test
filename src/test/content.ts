@@ -43,12 +43,12 @@ export const FINAL: Question[] = [
   // One label/score type per page, so each gets its own answer and isn't read against the other.
   // The answer ids (final_badges_attendance etc.) are unchanged.
   {
-    id: 'final_badges_1', kind: 'parts', title: 'On the requests, you saw labels like these.', hint: 'In your own words, there’s no right answer.',
-    parts: [{ id: 'final_badges_attendance', visual: 'badges-attendance', prompt: 'What do these labels tell you about a player?' }],
+    id: 'final_badges_1', kind: 'parts', title: 'On the requests, different players had labels like these.', hint: 'In your own words, there’s no right answer.',
+    parts: [{ id: 'final_badges_attendance', visual: 'badges-attendance', prompt: 'What does each label tell you about that player?' }],
   },
   {
-    id: 'final_badges_2', kind: 'parts', title: 'You also saw labels like these.',
-    parts: [{ id: 'final_badges_sportsmanship', visual: 'badges-sportsmanship', prompt: 'What do these labels tell you about a player?' }],
+    id: 'final_badges_2', kind: 'parts', title: 'Players also had labels like these.',
+    parts: [{ id: 'final_badges_sportsmanship', visual: 'badges-sportsmanship', prompt: 'What does each label tell you about that player?' }],
   },
   {
     id: 'final_scores_1', kind: 'parts', title: 'On players’ profiles, you saw this score.', hint: 'In your own words, there’s no right answer.',
