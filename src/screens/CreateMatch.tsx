@@ -53,12 +53,19 @@ function FindSearch({ what, whatIcon, summary, chips, onWhat, trackPrefix }: {
 }
 
 /* ───────────── Find activities (search tab) ───────────── */
+/** Set by the Home "Matches" shortcut just before opening Find: they've already chosen, so no picker */
+let findIntent: 'Matches' | null = null
+export function openFindFor(intent: 'Matches') { findIntent = intent }
+
 export function FindScreen() {
   const { push } = useApp()
-  const [sheet, setSheet] = useState(true)
+  const [intent] = useState(() => { const i = findIntent; findIntent = null; return i })
+  // From the Matches shortcut: straight to match results; the picker opens only from the search field.
+  // From the Find tab: the picker opens right away, as before.
+  const [sheet, setSheet] = useState(!intent)
   const [choice, setChoice] = useState<'Matches' | 'Lessons' | 'Court' | 'Tournaments'>('Matches')
   // The title follows what they chose: "Find matches" here; Courts opens its own "Find courts" page
-  const [shown, setShown] = useState<'Matches' | null>(null)
+  const [shown, setShown] = useState<'Matches' | null>(intent)
   return (
     <div className="screen">
       <div className="screen__scroll">

@@ -1,3 +1,4 @@
+import { openFindFor } from './CreateMatch'
 import type { ReactNode } from 'react'
 import { Icon } from '../components/Icon'
 import { EmptyState, EventCard, PromoBanner } from '../components/cards'
@@ -40,7 +41,7 @@ function FindTiles() {
     <div className="stack gap12">
       <SectionHeader title="Find new activities" />
       <div className="stack gap8">
-        <div className="row gap8">{tile('ball', 'Matches', () => push('find'))}{tile('hat', 'Lessons')}{tile('trophy', 'Tournaments')}</div>
+        <div className="row gap8">{tile('ball', 'Matches', () => { openFindFor('Matches'); push('find') })}{tile('hat', 'Lessons')}{tile('trophy', 'Tournaments')}</div>
         {tile('plus', 'Create a match', () => push('bookCourt'), 'md')}
       </div>
     </div>
