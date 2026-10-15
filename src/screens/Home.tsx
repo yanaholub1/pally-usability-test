@@ -29,19 +29,19 @@ export function GreetingHeader({ summary, onSummary }: { summary: string; onSumm
 
 function FindTiles() {
   const { push } = useApp()
-  const tile = (icon: string, label: string, go?: () => void) => (
-    <TButton className="tile" trackId={`home:tile:${label}`} onClick={go}>
+  // Kit ClickableTile (Figma 1985:14142): three Large tiles (icon above label) + one full-width Medium tile
+  const tile = (icon: string, label: string, go?: () => void, size: 'lg' | 'md' = 'lg') => (
+    <TButton className={`tile tile--${size}`} trackId={`home:tile:${label}`} onClick={go}>
       <Icon name={icon} />
       <span className="ellipsis">{label}</span>
     </TButton>
   )
   return (
     <div className="stack gap12">
-      {/* Figma 2195:38448: "Join a match" finds existing matches; "Start a match" starts by booking a court */}
-      <SectionHeader title="Find your next game" />
+      <SectionHeader title="Find new activities" />
       <div className="stack gap8">
-        <div className="row gap8">{tile('ball', 'Join a match', () => push('find'))}{tile('field', 'Start a match', () => push('bookCourt'))}</div>
-        <div className="row gap8">{tile('trophy', 'Tournaments')}{tile('hat', 'Lessons')}</div>
+        <div className="row gap8">{tile('ball', 'Matches', () => push('find'))}{tile('hat', 'Lessons')}{tile('trophy', 'Tournaments')}</div>
+        {tile('plus', 'Create a match', () => push('bookCourt'), 'md')}
       </div>
     </div>
   )

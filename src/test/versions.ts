@@ -4,6 +4,6 @@
  */
 export const VERSIONS: Record<string, string> = {
   v1: 'Original prototype',
-  v2: 'Updated copy and order for shortcuts on home + new club card + next-step caption on club page',
+  v2: 'New home shortcuts (Matches · Lessons · Tournaments + Create a match) + new club card + next-step caption on club page',
 }
 export const CURRENT_VERSION = 'v2'
