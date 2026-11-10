@@ -64,12 +64,12 @@ export function deviceOf(ua: string | null) {
   return br ? `${os} · ${br}` : os
 }
 
-/** P01, P02… for real sessions and Pilot 1, Pilot 2… for pilots, in the order they started */
+/** Participant 1, Participant 2… for real sessions and Pilot 1, Pilot 2… for pilots, in the order they started */
 export function labelsFor(ps: Participant[]) {
   const out: Record<string, string> = {}
   const sorted = [...ps].sort((a, b) => a.created_at.localeCompare(b.created_at))
   let real = 0, pilot = 0
-  for (const p of sorted) out[p.id] = p.mode === 'pilot' ? `Pilot ${++pilot}` : `P${String(++real).padStart(2, '0')}`
+  for (const p of sorted) out[p.id] = p.mode === 'pilot' ? `Pilot ${++pilot}` : `Participant ${++real}`
   return out
 }
 export const fileLabel = (label: string) => label.replace(/\s+/g, '-')

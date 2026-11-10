@@ -170,7 +170,7 @@ function Overview() {
           <tbody>
             {shown.map((r) => (
               <tr key={r.p.id} onClick={() => { location.hash = `p=${r.p.id}` }}>
-                <td><a href={`#p=${r.p.id}`}><b>{r.label}</b></a> <span className="rs-tag" title={VERSIONS[r.version] ?? ''}>{r.version}</span>{!r.completed && <span className="rs-tag rs-tag--warn">not finished</span>}</td>
+                <td><a className="rs-label" href={`#p=${r.p.id}`}><b>{r.label}</b></a> <span className="rs-tag" title={VERSIONS[r.version] ?? ''}>{r.version}</span>{!r.completed && <span className="rs-tag rs-tag--warn">not finished</span>}</td>
                 <td>{fmtDate(r.p.created_at)}</td>
                 <td>{r.device}</td>
                 <td>{r.thinkAloud ? 'Think-aloud' : r.thinkAloud === false ? 'Typing' : '—'}</td>
@@ -241,7 +241,7 @@ function ParticipantPage({ id }: { id: string }) {
       <a href="#">← All sessions</a>
       <div className="rs-row rs-between rs-head">
         <div>
-          <h1>{d.label}</h1>
+          <h1 className="rs-label">{d.label}</h1>
           <p className="rs-muted">
             {fmtDate(d.p.created_at)} · {deviceOf(d.p.user_agent)} · {d.p.viewport ?? ''} · {opt ? 'Thinking aloud' : opt === false ? 'Typing only' : 'Mic unknown'} · {d.p.mode}
             <span className="rs-tag">{version}: {VERSIONS[version] ?? 'unknown version'}</span>
