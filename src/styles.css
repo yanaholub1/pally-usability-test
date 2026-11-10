@@ -130,10 +130,10 @@ p { margin: 0; }
 .btn--lg { height: 56px; padding: 0 24px; font-size: 18px; line-height: 24px; width: 100%; }
 .btn--primary { background: var(--brand-500); color: #fff; }
 .btn--primary:active:not([aria-disabled="true"]) { background: var(--brand-700); }
-.btn--primary[aria-disabled="true"] { background: #83a5ef; color: #e4e4e7; cursor: default; }
+.btn--primary[aria-disabled="true"] { background: var(--brand-disabled, #83a5ef); color: #e4e4e7; cursor: default; }
 .btn--secondary { background: #fff; color: var(--brand-500); border-color: var(--brand-500); }
 .btn--secondary:active:not([aria-disabled="true"]) { background: var(--brand-50); }
-.btn--secondary[aria-disabled="true"] { color: #83a5ef; border-color: #83a5ef; cursor: default; }
+.btn--secondary[aria-disabled="true"] { color: var(--brand-disabled, #83a5ef); border-color: var(--brand-disabled, #83a5ef); cursor: default; }
 .btn--neutral { background: #fff; color: var(--gray-900); border-color: var(--gray-300); }
 .btn--neutral:active:not([aria-disabled="true"]) { background: var(--gray-100); }
 .btn--ghost { background: transparent; color: var(--brand-500); }
@@ -614,3 +614,22 @@ html.test-root .test-page__scroll, html.test-root .screen__scroll { overscroll-b
 .needs-choice { animation: needs-choice-nudge .4s ease-out; }
 @keyframes needs-choice-nudge { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @media (prefers-reduced-motion: reduce) { .needs-choice { animation: none; } }
+
+/* ───── Magenta brand theme (case study). Turn on with ?theme=magenta; the live test stays blue. ───── */
+html.theme-magenta {
+  --brand-50: #fdf0f7;
+  --brand-100: #f9d2e7;
+  --brand-300: #e05aa5;
+  --brand-500: #b72683;
+  --brand-700: #93206a;
+  --brand-800: #7a1b58;
+  --brand-900: #5c1543;
+  --brand-disabled: #dda3c8;
+  --noise: #9e2171;
+  /* Promo trays and the "Great fit" frame: light pink instead of lime */
+  --lime-soft: #fbe3f0;
+  --lime-border: #f6c8e1;
+}
+/* The header texture is a blue image: keep its grain, take the magenta colour */
+html.theme-magenta .brand-bg { background-blend-mode: luminosity; }
+html.theme-magenta .event-frame--blue { background: #fbe3f0; }

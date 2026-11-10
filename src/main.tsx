@@ -17,6 +17,8 @@ applyMotionVariables()
 // ?mode=moderated or ?mode=pilot tags a test session.
 // ?results opens the private results page (sign-in required); loaded separately so participants never download it.
 const params = new URLSearchParams(location.search)
+// ?theme=magenta: the new magenta brand (for case-study screens and the results replay)
+if (params.get('theme') === 'magenta') document.documentElement.classList.add('theme-magenta')
 const ResultsApp = lazy(() => import('./results/ResultsApp'))
 const review = params.has('screen') || params.has('prototype')
 const start = (params.get('screen') as ScreenId | null) ?? 'home'

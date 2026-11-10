@@ -83,3 +83,11 @@ html.results-root, html.results-root body { height: auto; background: #f4f4f5; }
 .rs-tag { white-space: nowrap; }
 .rs-tablewrap .rs-table td { white-space: nowrap; }
 .rs-tablewrap .rs-table td.rs-wrap { white-space: normal; min-width: 220px; }
+/* Session details: magenta buttons and links (destructive buttons stay red) */
+.rs-detail a, .rs-detail .rs-link { color: #b72683; }
+.rs-detail .rs-btn:not(.rs-btn--danger):not(.rs-btn--ghost-danger) { background: #b72683; border-color: #b72683; color: #fff; }
+.rs-detail .rs-btn:not(.rs-btn--danger):not(.rs-btn--ghost-danger):hover:not(:disabled) { background: #93206a; border-color: #93206a; }
+.rs-detail .rs-ev.on { background: #fdf0f7; box-shadow: inset 3px 0 0 #b72683; }
+.rs-detail .rs-ev--screen .rs-ev__x { color: #b72683; }
+.rs-detail .rs-silent input[type=range], .rs-detail audio { accent-color: #b72683; }
+.rs-detail .rs-input:focus { outline-color: #b72683; }

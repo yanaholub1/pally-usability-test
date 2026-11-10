@@ -237,7 +237,7 @@ function ParticipantPage({ id }: { id: string }) {
   }
 
   return (
-    <div className="rs-page">
+    <div className="rs-page rs-detail">
       <a href="#">← All sessions</a>
       <div className="rs-row rs-between rs-head">
         <div>
@@ -555,7 +555,7 @@ function TaskSection({ d, seg, title, summary }: { d: Detail; seg: 'task1' | 'ta
         </div>
         <div className="rs-replay">
           <div className="rs-phone" style={{ width: 390 * scale, height: 760 * scale }}>
-            <iframe ref={frameRef} title="Screen replay" src="/?replay" style={{ width: 390, height: 760, transform: `scale(${scale})` }} tabIndex={-1} />
+            <iframe ref={frameRef} title="Screen replay" src="/?replay&theme=magenta" style={{ width: 390, height: 760, transform: `scale(${scale})` }} tabIndex={-1} />
             {tapData && !replay.profile && (
               <span key={replay.tap!.t_ms} className={`rs-dot ${replay.tap!.type === 'tap_dead' ? 'rs-dot--dead' : ''}`}
                 style={{ left: tapData.x * (390 / tapData.w) * scale, top: tapData.y * (390 / tapData.w) * scale }} />
