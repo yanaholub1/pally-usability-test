@@ -176,7 +176,7 @@ function Overview() {
                 <td>{r.thinkAloud ? 'Think-aloud' : r.thinkAloud === false ? 'Typing' : '—'}</td>
                 <td><Outcome how={r.tasks.task1.how} ms={r.tasks.task1.ms} /></td>
                 <td><Outcome how={r.tasks.task2.how} ms={r.tasks.task2.ms} /></td>
-                <td>{r.admitted.length ? r.admitted.join(', ') : '—'}</td>
+                <td className="rs-wrap">{r.admitted.length ? r.admitted.join(', ') : '—'}</td>
                 <td>{r.tasks.task2.how ? (r.profilesOpened === 0 ? <span className="rs-tag rs-tag--warn">0 · cards only</span> : r.profilesOpened) : '—'}</td>
                 <td>{r.answers}{r.voiceAnswers ? <span className="rs-muted"> · {r.voiceAnswers} voice</span> : ''}</td>
                 <td>{r.audioFiles ? <span className={r.audioSince && daysSince(r.audioSince) >= AUDIO_KEPT_DAYS ? 'rs-danger' : ''}>{daysSince(r.audioSince!)}d old</span> : <span className="rs-muted">none</span>}</td>
