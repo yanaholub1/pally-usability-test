@@ -67,7 +67,7 @@ html.results-root, html.results-root body { height: auto; background: #f4f4f5; }
 .rs-ev--milestone .rs-ev__x, .rs-ev--end .rs-ev__x { font-weight: 600; }
 .rs-ev--mic .rs-ev__x, .rs-ev--scroll .rs-ev__x { color: var(--gray-600); }
 .rs-replay { position: sticky; top: 72px; display: flex; flex-direction: column; gap: 8px; width: 242px; }
-.rs-phone { position: relative; overflow: hidden; border-radius: 20px; border: 6px solid #1c1c1f; background: #fff; box-sizing: content-box; }
+.rs-phone { position: relative; overflow: hidden; border-radius: 20px; border: 6px solid #e3e3e6; background: #fff; box-sizing: content-box; }
 .rs-phone iframe { border: 0; transform-origin: 0 0; pointer-events: none; display: block; }
 .rs-phone__overlay { position: absolute; inset: auto 8px 8px 8px; padding: 8px 10px; border-radius: 10px; background: rgba(24,24,27,.88); color: #fff; font-size: 12px; text-align: center; }
 .rs-dot { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: rgba(7,75,223,.35); box-shadow: 0 0 0 2px var(--brand-500); animation: rs-dot .9s ease-out both; pointer-events: none; }
